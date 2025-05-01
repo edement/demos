@@ -1,0 +1,59 @@
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Permanent+Marker&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 10%;
+    --foreground: 0 0% 100%;
+    --card: 0 0% 13%;
+    --card-foreground: 0 0% 100%;
+    --popover: 0 0% 10%;
+    --popover-foreground: 0 0% 100%;
+    --primary: 263 85% 65%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 0 0% 13%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 0 0% 20%;
+    --muted-foreground: 0 0% 70%;
+    --accent: 263 85% 65%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 0 0% 20%;
+    --input: 0 0% 20%;
+    --ring: 263 85% 65%;
+    --radius: 0.5rem;
+  }
+
+  body {
+    @apply bg-demokrat-dark text-white;
+    background-image: url('https://www.transparenttextures.com/patterns/concrete-wall.png');
+    background-repeat: repeat;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-demokrat-purple text-white px-6 py-2 rounded-md hover:bg-opacity-90 transition-colors;
+  }
+  
+  .btn-secondary {
+    @apply bg-demokrat-gray text-white px-6 py-2 rounded-md hover:bg-opacity-90 border border-demokrat-purple/30 transition-colors;
+  }
+  
+  .input-field {
+    @apply bg-demokrat-gray border border-white/10 rounded-md px-4 py-2 text-white outline-none focus:border-demokrat-purple transition-colors;
+  }
+
+  .card {
+    @apply bg-demokrat-gray rounded-md p-6 border border-white/5 hover:border-demokrat-purple/30 transition-all;
+  }
+
+  .graffiti-text {
+    @apply font-graffiti text-demokrat-purple;
+  }
+}
