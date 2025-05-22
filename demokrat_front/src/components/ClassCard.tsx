@@ -1,28 +1,26 @@
-
 import React from 'react';
-import { DanceClass } from '@/types';
+import { Class } from '@/types';
 import { Calendar, Clock, MapPin, DollarSign, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/components/ui/use-toast';
 import { useNavigate } from 'react-router-dom';
+import { enrollmentService } from '@/services/api';
 
 interface ClassCardProps {
-  danceClass: DanceClass;
+  danceClass: Class;
   onEnroll?: (classId: string) => void;
+  isEnrolled?: boolean;
 }
 
-const ClassCard = ({ danceClass, onEnroll }: ClassCardProps) => {
+const ClassCard = ({ danceClass, onEnroll, isEnrolled = false }: ClassCardProps) => {
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
   
-  const isStudent = user?.role === 'student';
-  const isTrainer = user?.role === 'trainer';
+  const isStudent = !user.isTrainer;
+  const isTrainer = user.isTrainer;
   const isClassTrainer = user?.id === danceClass.trainer.id;
-  
-  // Проверяем, записан ли студент на занятие
-  const isEnrolled = danceClass.enrolledStudents?.includes(user?.id || '');
   
   const handleEnroll = () => {
     if (!user) {
@@ -37,6 +35,25 @@ const ClassCard = ({ danceClass, onEnroll }: ClassCardProps) => {
     
     if (onEnroll) {
       onEnroll(danceClass.id);
+    }
+  };
+
+  const cancelEnroll = async (classId: string) => {                                         // отмена занятия
+    if (!user) return;
+
+    try {
+      await enrollmentService.cancelEnrollment(classId);
+      toast({
+        title: "Запись отменена",
+        description: "Мы отменили вашу запись",
+      });
+    } catch (error) {
+      console.error(`Error cancelling ${classId} enrollment`, error);
+      toast({
+        title: "Ошибка отмены записи",
+        description: "Не удалось отменить запись на занятие. Пожалуйста, попробуйте снова.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -86,10 +103,11 @@ const ClassCard = ({ danceClass, onEnroll }: ClassCardProps) => {
           
           {isStudent && isEnrolled && (
             <Button 
-              disabled
-              className="w-full bg-demokrat-purple/50 text-white cursor-not-allowed"
+              onClick={() => cancelEnroll(danceClass.id)}
+              variant="outline"
+              className="w-full border-demokrat-purple/30 text-demokrat-purple hover:bg-demokrat-purple/10"
             >
-              Вы записаны
+              Отменить запись
             </Button>
           )}
           

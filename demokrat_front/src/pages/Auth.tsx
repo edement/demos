@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
@@ -7,13 +6,12 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { UserRole } from '@/types';
 
 const Auth = () => {
   const navigate = useNavigate();
   const { login, register, isAuthenticated } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
-  const [role, setRole] = useState<UserRole>('student');
+  const [isTrainer, setIsTrainer] = useState(false);
 
   // Redirect if already logged in
   React.useEffect(() => {
@@ -50,7 +48,7 @@ const Auth = () => {
     const password = formData.get('password') as string;
     
     try {
-      await register(email, password, name, role);
+      await register(email, password, name, isTrainer);
       navigate('/dashboard');
     } catch (error) {
       console.error('Registration error:', error);
@@ -157,8 +155,8 @@ const Auth = () => {
                     </Label>
                     <Switch 
                       id="role-switch" 
-                      checked={role === 'trainer'} 
-                      onCheckedChange={(checked) => setRole(checked ? 'trainer' : 'student')}
+                      checked={isTrainer} 
+                      onCheckedChange={(checked) => setIsTrainer(checked)}
                     />
                   </div>
                   

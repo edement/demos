@@ -1,14 +1,11 @@
-
-export type UserRole = 'student' | 'trainer';
-
 export interface User {
   id: string;
   name: string;
   email: string;
-  role: UserRole;
+  isTrainer: boolean;
 }
 
-export interface DanceClass {
+export interface Class {
   id: string;
   date: string;
   time: string;
@@ -19,4 +16,9 @@ export interface DanceClass {
     name: string;
   };
   enrolledStudents?: string[];
+}
+
+export interface Tokens {
+  accessToken: string;
+  refreshToken: string;
 }

@@ -45,7 +45,7 @@ const Index = () => {
               ) : (
                 <Link to="/dashboard">
                   <Button className="btn-primary min-w-[180px]">
-                    {user?.role === 'trainer' ? 'Trainer Dashboard' : 'Student Dashboard'}
+                    {user.isTrainer ? 'Trainer Dashboard' : 'Student Dashboard'}
                   </Button>
                 </Link>
               )}

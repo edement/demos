@@ -1,13 +1,13 @@
 
 import React, { createContext, useState, useContext, useEffect } from 'react';
-import { User, UserRole } from '../types';
+import { User } from '../types';
 import { useToast } from '@/components/ui/use-toast';
 import { authService } from '@/services/api';
 
 interface AuthContextType {
   user: User | null;
   login: (email: string, password: string) => Promise<void>;
-  register: (email: string, password: string, name: string, role: UserRole) => Promise<void>;
+  register: (email: string, password: string, name: string, isTrainer: boolean) => Promise<void>;
   logout: () => void;
   isAuthenticated: boolean;
 }
@@ -28,7 +28,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const { toast } = useToast();
 
   useEffect(() => {
-    const storedToken = localStorage.getItem('demokratToken');
+    const storedToken = localStorage.getItem('demokratAccessToken');
     if (storedToken) {
       fetchCurrentUser();
     } else {
@@ -50,9 +50,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = async (email: string, password: string) => {
     try {
-      const { user: userData, token } = await authService.login(email, password);
+      const { user: userData, tokens } = await authService.login(email, password);
       setUser(userData);
-      localStorage.setItem('demokratToken', token);
+      localStorage.setItem('demokratAccessToken', tokens.accessToken);
+      localStorage.setItem('demokratRefreshToken', tokens.refreshToken);
       localStorage.setItem('demokratUser', JSON.stringify(userData));
       toast({
         title: "Вход выполнен",
@@ -69,11 +70,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const register = async (email: string, password: string, name: string, role: UserRole) => {
+  const register = async (email: string, password: string, name: string, isTrainer: boolean) => {
     try {
-      const { user: userData, token } = await authService.register(email, password, name, role);
+      const { user: userData, tokens } = await authService.register(email, password, name, isTrainer);
       setUser(userData);
-      localStorage.setItem('demokratToken', token);
+      localStorage.setItem('demokratAccessToken', tokens.accessToken);
+      localStorage.setItem('demokratRefreshToken', tokens.refreshToken);
       localStorage.setItem('demokratUser', JSON.stringify(userData));
       toast({
         title: "Регистрация завершена",
@@ -92,7 +94,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logout = () => {
     setUser(null);
-    localStorage.removeItem('demokratToken');
+    localStorage.removeItem('demokratAccessToken');
+    localStorage.removeItem('demokratRefreshToken');
     localStorage.removeItem('demokratUser');
     toast({
       title: "Выход выполнен",

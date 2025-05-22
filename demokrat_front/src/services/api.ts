@@ -1,10 +1,11 @@
 
-import { DanceClass, User, UserRole } from '@/types';
+import { Class, User, Tokens } from '@/types';
 
-const API_BASE_URL = 'http://localhost:5271';
+const API_BASE_URL = 'https://localhost:7087';
 
 // Функция для получения токена из localStorage
-const getToken = () => localStorage.getItem('demokratToken');
+const getAccessToken = () => localStorage.getItem('demokratAccessToken');
+const getRefreshToken = () => localStorage.getItem('demokratRefreshToken');
 
 // Универсальная функция для запросов к API
 const apiRequest = async <T>(
@@ -19,7 +20,7 @@ const apiRequest = async <T>(
   };
   
   // Добавляем токен авторизации, если он есть
-  const token = getToken();
+  const token = getAccessToken();
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;
   }
@@ -53,17 +54,17 @@ const apiRequest = async <T>(
 // Сервисы для работы с авторизацией
 export const authService = {
   // Регистрация пользователя
-  register: (email: string, password: string, name: string, role: UserRole) => 
-    apiRequest<{ user: User; token: string }>('/api/auth/register', 'POST', {
+  register: (email: string, password: string, name: string, isTrainer: boolean) => 
+    apiRequest<{ user: User; tokens: Tokens }>('/api/auth/registration', 'POST', {
       email,
       password,
       name,
-      role
+      isTrainer
     }),
   
   // Вход пользователя
   login: (email: string, password: string) => 
-    apiRequest<{ user: User; token: string }>('/api/auth/login', 'POST', {
+    apiRequest<{ user: User; tokens: Tokens }>('/api/auth/login', 'POST', {
       email,
       password
     }),
@@ -77,19 +78,19 @@ export const authService = {
 export const classesService = {
   // Получение всех занятий
   getAllClasses: () => 
-    apiRequest<DanceClass[]>('/api/classes'),
+    apiRequest<Class[]>('/api/classes'),
   
   // Получение занятия по ID
   getClassById: (id: string) => 
-    apiRequest<DanceClass>(`/api/classes/${id}`),
+    apiRequest<Class>(`/api/classes/${id}`),
   
   // Создание нового занятия
-  createClass: (classData: Omit<DanceClass, 'id' | 'trainer' | 'enrolledStudents'>) => 
-    apiRequest<DanceClass>('/api/classes', 'POST', classData),
+  createClass: (classData: Omit<Class, 'id' | 'trainer' | 'enrolledStudents'>) => 
+    apiRequest<null>('/api/classes', 'POST', classData),
   
   // Обновление занятия
-  updateClass: (id: string, classData: Partial<DanceClass>) => 
-    apiRequest<DanceClass>(`/api/classes/${id}`, 'PUT', classData),
+  updateClass: (id: string, classData: Partial<Class>) => 
+    apiRequest<Class>(`/api/classes/${id}`, 'PUT', classData),
   
   // Удаление занятия
   deleteClass: (id: string) => 
@@ -97,9 +98,9 @@ export const classesService = {
 
   // Получение занятий тренера
   getTrainerClasses: () => 
-    apiRequest<DanceClass[]>('/api/trainers/classes'),
+    apiRequest<Class[]>('/api/trainers/classes'),
     
-  // Получение учеников тренера
+  // Получение учеников тренера НЕ ИСПОЛЬЗУЕТСЯ                                               
   getTrainerStudents: () => 
     apiRequest<User[]>('/api/trainers/students')
 };
@@ -108,13 +109,13 @@ export const classesService = {
 export const enrollmentService = {
   // Запись на занятие
   enrollToClass: (classId: string) => 
-    apiRequest<{ id: string; classId: string; userId: string; enrollmentDate: string }>('/api/enrollments', 'POST', { classId }),
+    apiRequest<null>('/api/classes/enrollments', 'POST', { classId }),
   
   // Получение записей пользователя
   getUserEnrollments: () => 
-    apiRequest<DanceClass[]>('/api/enrollments'),
+    apiRequest<Class[]>('/api/classes/enrollments'),
   
   // Отмена записи
   cancelEnrollment: (classId: string) => 
-    apiRequest<null>(`/api/enrollments/${classId}`, 'DELETE')
+    apiRequest<null>(`/api/classes/enrollments/${classId}`, 'DELETE')
 };

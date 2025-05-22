@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Link, useLocation } from 'react-router-dom';
 import { Menu, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -17,6 +18,8 @@ const Navbar = () => {
   const closeMenu = () => {
     setIsMenuOpen(false);
   };
+
+  const navigate = useNavigate();
 
   const isActive = (path: string) => {
     return location.pathname === path;
@@ -57,7 +60,10 @@ const Navbar = () => {
               ))}
               {isAuthenticated && (
                 <button
-                  onClick={logout}
+                  onClick={() => {
+                    logout();
+                    navigate('/');
+                  }}
                   className="text-white hover:text-demokrat-purple px-1 py-1 text-sm font-medium transition-colors"
                 >
                   Logout
@@ -106,6 +112,7 @@ const Navbar = () => {
                 onClick={() => {
                   logout();
                   closeMenu();
+                  navigate('/');
                 }}
                 className="w-full text-left text-white hover:text-demokrat-purple block px-3 py-2 text-base font-medium transition-colors"
               >

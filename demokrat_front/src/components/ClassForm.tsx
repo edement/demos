@@ -24,7 +24,7 @@ const ClassForm = ({ onSubmit, isLoading = false }: ClassFormProps) => {
   const { user } = useAuth();
 
   const submitHandler = (data: ClassFormData) => {
-    if (user?.role !== 'trainer') {
+    if (!user.isTrainer) {
       toast({
         title: "Permission denied",
         description: "Only trainers can create classes",

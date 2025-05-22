@@ -1,8 +1,8 @@
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import Navbar from '@/components/Navbar';
 import ClassCard from '@/components/ClassCard';
-import { DanceClass } from '@/types';
+import { Class } from '@/types';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
@@ -11,12 +11,12 @@ import { classesService, enrollmentService } from '@/services/api';
 import { useToast } from '@/components/ui/use-toast';
 
 const Classes = () => {
-  const [classes, setClasses] = useState<DanceClass[]>([]);
+  const [classes, setClasses] = useState<Class[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { user } = useAuth();
   const { toast } = useToast();
   
-  const isTrainer = user?.role === 'trainer';
+  const isTrainer = user.isTrainer;
 
   useEffect(() => {
     fetchClasses();
@@ -101,8 +101,9 @@ const Classes = () => {
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                 {classes.map((danceClass) => (
                   <ClassCard 
-                    key={danceClass.id} 
-                    danceClass={danceClass} 
+                    key={danceClass.id}
+                    danceClass={danceClass}
+                    isEnrolled={danceClass.enrolledStudents?.includes(user?.id || '')}
                     onEnroll={handleEnroll}
                   />
                 ))}

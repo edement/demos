@@ -22,7 +22,7 @@ const CreateClass = () => {
   
   // Redirect if not a trainer
   React.useEffect(() => {
-    if (user && user.role !== 'trainer') {
+    if (user && !user.isTrainer) {
       toast({
         title: "Доступ запрещен",
         description: "Только тренеры могут создавать занятия",

@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
-import { DanceClass } from '@/types';
+import { Class } from '@/types';
 import ClassCard from '@/components/ClassCard';
 import { Link } from 'react-router-dom';
 import { PlusCircle, UserCircle } from 'lucide-react';
@@ -14,11 +14,11 @@ import { useToast } from '@/components/ui/use-toast';
 const Dashboard = () => {
   const { user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
-  const [userClasses, setUserClasses] = useState<DanceClass[]>([]);
+  const [userClasses, setUserClasses] = useState<Class[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
   
-  const isTrainer = user?.role === 'trainer';
+  const isTrainer = user.isTrainer;
 
   // Redirect if not authenticated
   useEffect(() => {
@@ -33,7 +33,7 @@ const Dashboard = () => {
     const fetchUserClasses = async () => {
       setIsLoading(true);
       try {
-        let classesData: DanceClass[];
+        let classesData: Class[];
         
         if (isTrainer) {
           // Получаем классы тренера
@@ -154,7 +154,12 @@ const Dashboard = () => {
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                   {userClasses.map((danceClass) => (
-                    <ClassCard key={danceClass.id} danceClass={danceClass} onEnroll={isTrainer ? undefined : handleEnroll} />
+                    <ClassCard 
+                    key={danceClass.id}
+                    danceClass={danceClass}
+                    isEnrolled={true}
+                    onEnroll={isTrainer ? undefined : handleEnroll}
+                    />
                   ))}
                 </div>
               )}
