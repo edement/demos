@@ -34,22 +34,19 @@ namespace demokrat_back.Middleware
                         IssuerSigningKey = new SymmetricSecurityKey(key),
                         ValidateIssuer = false,
                         ValidateAudience = false,
-                        ClockSkew = TimeSpan.Zero // Убираем задержку на время
+                        ClockSkew = TimeSpan.Zero
                     }, out _);
 
-                    // Устанавливаем информацию о пользователе в HttpContext.User
                     context.User = principal;
                 }
                 catch
                 {
-                    // Если токен невалидный
-                    context.Response.StatusCode = 401; // Unauthorized
+                    context.Response.StatusCode = 401;
                     await context.Response.WriteAsync("Invalid token");
                     return;
                 }
             }
 
-            // Передаем управление следующему компоненту в конвейере
             await _next(context);
         }
     }

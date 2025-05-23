@@ -37,7 +37,7 @@ namespace demokrat_back.Other
                 issuer: _config.GetValue<string>("AppSettings:Issuer"),
                 audience: _config.GetValue<string>("AppSettings:Audience"),
                 claims: claims,
-                expires: DateTime.UtcNow.AddMinutes(3),
+                expires: DateTime.UtcNow.AddMinutes(60),
                 signingCredentials: creds
                 );
 
