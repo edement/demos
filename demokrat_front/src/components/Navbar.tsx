@@ -26,9 +26,9 @@ const Navbar = () => {
   };
 
   const navLinks = [
-    { name: 'Home', path: '/' },
-    { name: 'Classes', path: '/classes' },
-    { name: isAuthenticated ? 'Dashboard' : 'Sign In', path: isAuthenticated ? '/dashboard' : '/auth' },
+    { name: 'Главная', path: '/' },
+    { name: 'Занятия', path: '/classes' },
+    { name: isAuthenticated ? 'Профиль' : 'Войти', path: isAuthenticated ? '/dashboard' : '/auth' },
   ];
 
   return (
@@ -66,7 +66,7 @@ const Navbar = () => {
                   }}
                   className="text-white hover:text-demokrat-purple px-1 py-1 text-sm font-medium transition-colors"
                 >
-                  Logout
+                  Выйти
                 </button>
               )}
             </div>
@@ -116,7 +116,7 @@ const Navbar = () => {
                 }}
                 className="w-full text-left text-white hover:text-demokrat-purple block px-3 py-2 text-base font-medium transition-colors"
               >
-                Logout
+                Выйти
               </button>
             )}
           </div>

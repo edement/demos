@@ -1,6 +1,7 @@
 ﻿using demokrat_back.Classes.demokrat_back.Classes;
 using demokrat_back.Db;
 using demokrat_back.Users;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
@@ -40,6 +41,7 @@ namespace demokrat_back.Classes
             return Created();
         }
 
+        [AllowAnonymous]
         [HttpGet]
         public List<ClassDto> GetClasses()
         {

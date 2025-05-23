@@ -66,19 +66,19 @@ const Auth = () => {
           <div className="card p-8">
             <h1 className="text-2xl font-bold text-center mb-8">
               <span className="graffiti-text">DEMOKRAT</span>
-              <span className="block text-white text-lg font-normal mt-1">Account Access</span>
+              <span className="block text-white text-lg font-normal mt-1">Вход в аккаунт</span>
             </h1>
             
             <Tabs defaultValue="login" className="w-full">
               <TabsList className="grid w-full grid-cols-2 mb-8">
-                <TabsTrigger value="login">Login</TabsTrigger>
-                <TabsTrigger value="register">Register</TabsTrigger>
+                <TabsTrigger value="login">Вход</TabsTrigger>
+                <TabsTrigger value="register">Регистрация</TabsTrigger>
               </TabsList>
               
               <TabsContent value="login">
                 <form onSubmit={handleLogin} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="login-email">Email</Label>
+                    <Label htmlFor="login-email">Почта</Label>
                     <input
                       id="login-email"
                       name="email"
@@ -90,7 +90,7 @@ const Auth = () => {
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="login-password">Password</Label>
+                    <Label htmlFor="login-password">Пароль</Label>
                     <input
                       id="login-password"
                       name="password"
@@ -106,7 +106,7 @@ const Auth = () => {
                     className="w-full mt-6 bg-demokrat-purple hover:bg-demokrat-purple/90"
                     disabled={isLoading}
                   >
-                    {isLoading ? "Signing in..." : "Sign in"}
+                    {isLoading ? "Вход..." : "Войти"}
                   </Button>
                 </form>
               </TabsContent>
@@ -114,7 +114,7 @@ const Auth = () => {
               <TabsContent value="register">
                 <form onSubmit={handleRegister} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="register-name">Name</Label>
+                    <Label htmlFor="register-name">Имя</Label>
                     <input
                       id="register-name"
                       name="name"
@@ -126,7 +126,7 @@ const Auth = () => {
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="register-email">Email</Label>
+                    <Label htmlFor="register-email">Почта</Label>
                     <input
                       id="register-email"
                       name="email"
@@ -138,7 +138,7 @@ const Auth = () => {
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="register-password">Password</Label>
+                    <Label htmlFor="register-password">Пароль</Label>
                     <input
                       id="register-password"
                       name="password"
@@ -151,7 +151,7 @@ const Auth = () => {
                   
                   <div className="flex items-center justify-between pt-2">
                     <Label htmlFor="role-switch" className="cursor-pointer">
-                      Register as a trainer
+                      Зарегистрироваться как тренер
                     </Label>
                     <Switch 
                       id="role-switch" 
@@ -165,7 +165,7 @@ const Auth = () => {
                     className="w-full mt-6 bg-demokrat-purple hover:bg-demokrat-purple/90"
                     disabled={isLoading}
                   >
-                    {isLoading ? "Creating account..." : "Create account"}
+                    {isLoading ? "Создание..." : "Создать аккаунт"}
                   </Button>
                 </form>
               </TabsContent>
