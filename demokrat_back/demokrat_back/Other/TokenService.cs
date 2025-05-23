@@ -6,6 +6,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Cryptography;
 using demokrat_back.Db;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace demokrat_back.Other
 {
@@ -73,7 +74,7 @@ namespace demokrat_back.Other
         }
         public bool VerifyRefreshToken(string dbRefresh, string oldRefresh)
         {
-
+            return false;
         }
         //хэшер токена
         public static string Hash(string token)

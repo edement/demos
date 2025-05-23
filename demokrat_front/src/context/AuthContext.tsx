@@ -29,6 +29,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     const storedToken = localStorage.getItem('demokratAccessToken');
+    
     if (storedToken) {
       fetchCurrentUser();
     } else {

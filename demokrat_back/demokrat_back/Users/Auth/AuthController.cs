@@ -1,4 +1,5 @@
 ﻿using demokrat_back.Db;
+using demokrat_back.Migrations;
 using demokrat_back.Other;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -84,10 +85,25 @@ namespace demokrat_back.Users.Auth
                 return Unauthorized("User not authenticated");
             }
             var userId = Guid.Parse(userIdClaim);
+            var user = await _database.Users.FirstOrDefaultAsync(u => u.Id == userId);
 
             var dbrefresh = await _database.RefreshTokens.FirstOrDefaultAsync(r => r.UserId == userId);
 
-            if(_tokenService.VerifyRefreshToken(dbrefresh.HashedToken, oldRefresh)) { return Unauthorized(); }
+            if(!_tokenService.VerifyRefreshToken(dbrefresh.HashedToken, oldRefresh)) { return Unauthorized(); }
+
+            var newRefresh = _tokenService.GenerateRefreshToken(user);
+            var newAccess = _tokenService.GenerateAccessToken(user);
+
+            var response = new
+            {
+                tokens = new
+                {
+                    accessToken = newAccess,
+                    refreshToken = newRefresh
+                }
+            };
+
+            return Ok(response);
         } 
     }
 }

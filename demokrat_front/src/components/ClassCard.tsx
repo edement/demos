@@ -111,14 +111,14 @@ const ClassCard = ({ danceClass, onEnroll, isEnrolled = false }: ClassCardProps)
             </Button>
           )}
           
-          {isTrainer && isClassTrainer && (
+          {/* {isTrainer && isClassTrainer && (
             <Button 
               variant="outline"
               className="w-full border-demokrat-purple/30 text-demokrat-purple hover:bg-demokrat-purple/10"
             >
               Редактировать
             </Button>
-          )}
+          )} */}
           
           {!user && (
             <Button 
