@@ -97,7 +97,7 @@ namespace demokrat_back.Classes
         public List<ClassDto> GetEnrollments()
         {
             var userIdClaim = User.FindFirst("userId")?.Value;
-            var userId = Guid.Parse(userIdClaim);
+                var userId = Guid.Parse(userIdClaim);
             // Получаем список классов, на которые записан пользователь
             var enrollments = _database.Enrollments
                 .Where(e => e.UserId == userId)

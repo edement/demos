@@ -5,6 +5,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { Menu, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/context/AuthContext';
+import LogoHor from "@/assets/logo-text-hor.svg?react";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -37,7 +38,7 @@ const Navbar = () => {
         <div className="flex justify-between h-16 items-center">
           <div className="flex items-center">
             <Link to="/" onClick={closeMenu} className="flex-shrink-0">
-              <span className="text-xl font-graffiti tracking-wider text-demokrat-purple">DEMOKRAT</span>
+              <LogoHor className="mx-auto h-10 w-auto"/>
             </Link>
           </div>
           

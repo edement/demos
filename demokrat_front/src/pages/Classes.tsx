@@ -48,7 +48,7 @@ const Classes = () => {
         title: "Запись выполнена",
         description: "Вы успешно записались на занятие",
       });
-      // Обновляем список занятий
+
       fetchClasses();
     } catch (error) {
       console.error(`Error enrolling in class: ${classId}`, error);

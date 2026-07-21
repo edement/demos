@@ -17,11 +17,6 @@ const Index = () => {
         <section className="flex-grow flex items-center justify-center px-4 py-20 relative overflow-hidden">
           <div className="absolute inset-0 z-0 opacity-20">
             <div className="absolute inset-0 bg-gradient-to-b from-transparent to-demokrat-dark"></div>
-            <img 
-              src="https://images.unsplash.com/photo-1547153760-18fc86324498?q=80&w=1974&auto=format&fit=crop"
-              alt="Dance Studio Background" 
-              className="w-full h-full object-cover"
-            />
           </div>
           
           <div className="max-w-2xl mx-auto text-center relative z-10 animate-fade-in">
@@ -50,11 +45,6 @@ const Index = () => {
                 </Link>
               )}
               
-              <Link to="/classes">
-                <Button variant="outline" className="btn-secondary min-w-[180px]">
-                  Посмотреть Занятия
-                </Button>
-              </Link>
             </div>
           </div>
         </section>

@@ -5,6 +5,7 @@ import Navbar from '@/components/Navbar';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Switch } from '@/components/ui/switch';
+import Logo from "@/assets/logo-clean.svg?react";
 import { Label } from '@/components/ui/label';
 
 const Auth = () => {
@@ -12,6 +13,7 @@ const Auth = () => {
   const { login, register, isAuthenticated } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [isTrainer, setIsTrainer] = useState(false);
+  const [activeTab, setActiveTab] = useState("login");
 
   // Redirect if already logged in
   React.useEffect(() => {
@@ -64,12 +66,12 @@ const Auth = () => {
       <main className="flex-grow flex items-center justify-center p-4 mt-16">
         <div className="w-full max-w-md mx-auto">
           <div className="card p-8">
-            <h1 className="text-2xl font-bold text-center mb-8">
-              <span className="graffiti-text">DEMOKRAT</span>
-              <span className="block text-white text-lg font-normal mt-1">Вход в аккаунт</span>
+            <h1 className="text-2xl font-bold text-center mb-5">
+              <Logo className="mx-auto mb-10 mt-5 h-20 w-auto" />
+              {/*<span className="block text-white text-lg font-normal mt-1">{activeTab === "login" ? "Вход в аккаунт" : "Создание аккаунта"}</span>*/}
             </h1>
             
-            <Tabs defaultValue="login" className="w-full">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
               <TabsList className="grid w-full grid-cols-2 mb-8">
                 <TabsTrigger value="login">Вход</TabsTrigger>
                 <TabsTrigger value="register">Регистрация</TabsTrigger>

@@ -1,6 +1,6 @@
 
 import React, { createContext, useState, useContext, useEffect } from 'react';
-import { User } from '../types';
+import { Tokens, User } from '../types';
 import { useToast } from '@/components/ui/use-toast';
 import { authService } from '@/services/api';
 
@@ -92,6 +92,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       throw error;
     }
   };
+
+  /*const refreshTokens = async (tokens: Tokens) => {
+    try {
+      const {tokens} = await authService.refreshTokens
+    }
+  }*/
 
   const logout = () => {
     setUser(null);

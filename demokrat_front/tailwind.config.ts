@@ -60,8 +60,9 @@ export default {
 				demokrat: {
 					dark: '#1A1A1A',
 					gray: '#222222',
-					light: '#E0E0E0',
+					light: '#393939',
 					purple: '#8B5CF6',
+					hoverPurple: '#7C3AED',
 					blue: '#4F46E5',
 				},
 			},

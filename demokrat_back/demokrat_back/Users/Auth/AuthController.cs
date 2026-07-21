@@ -71,7 +71,7 @@ namespace demokrat_back.Users.Auth
                 tokens = new
                 {
                     accessToken = accessToken,
-                    refreshToken = refreshToken
+                    refreshToken = "backTestToken"
                 }
             };
             return Ok(response); 

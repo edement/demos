@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -18,16 +17,16 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <AuthProvider>
-        <Toaster />
-        <Sonner />
+        <Toaster/>
+        <Sonner/>
         <BrowserRouter>
           <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/classes" element={<Classes />} />
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/create-class" element={<CreateClass />} />
-            <Route path="*" element={<NotFound />} />
+            <Route path="/" element={<Index/>}/>
+            <Route path="/classes"element={<Classes/>}/>
+            <Route path="/auth"element={<Auth/>}/>
+            <Route path="/dashboard" element={<Dashboard />}/>
+            <Route path="/create-class" element={<CreateClass />}/>
+            <Route path="*" element={<NotFound />}/>
           </Routes>
         </BrowserRouter>
       </AuthProvider>

@@ -1,7 +1,6 @@
-
 import { Class, User, Tokens } from '@/types';
 
-const API_BASE_URL = 'https://localhost:7087';
+const API_BASE_URL = 'http://localhost:5088';
 
 // Функция для получения токена из localStorage
 const getAccessToken = () => localStorage.getItem('demokratAccessToken');
@@ -42,6 +41,12 @@ const apiRequest = async <T>(
     const errorText = await response.text();
     throw new Error(errorText || `API Error: ${response.status}`);
   }
+
+  // Если access просрочен
+  if (response.status === 401) {
+    //обновляем токены
+    //повторный запрос
+  }
   
   // Для ответов со статусом 204 (No Content) возвращаем null
   if (response.status === 204) {
@@ -71,7 +76,11 @@ export const authService = {
     
   // Получение данных текущего пользователя
   getCurrentUser: () => 
-    apiRequest<User>('/api/users/me')
+    apiRequest<User>('/api/users/me'),
+
+  // Обновление токенов
+  refreshTokens: () => 
+    apiRequest<Tokens>('/api/auth/refresh'),
 };
 
 // Сервисы для работы с занятиями
