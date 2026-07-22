@@ -1,6 +1,8 @@
-import { Class, User, Tokens } from '@/types';
+import { Class, User, Tokens } from '@/types/types';
+import { mockTrainer, mockUser, mockTokens, mockClasses, mockEnrollments } from '@/mocks/mocks';
 
 const API_BASE_URL = 'http://localhost:5088';
+const useMock = import.meta.env.VITE_USE_MOCK === 'true';
 
 // Функция для получения токена из localStorage
 const getAccessToken = () => localStorage.getItem('demokratAccessToken');
@@ -59,24 +61,44 @@ const apiRequest = async <T>(
 // Сервисы для работы с авторизацией
 export const authService = {
   // Регистрация пользователя
-  register: (email: string, password: string, name: string, isTrainer: boolean) => 
-    apiRequest<{ user: User; tokens: Tokens }>('/api/auth/registration', 'POST', {
-      email,
-      password,
-      name,
-      isTrainer
-    }),
+  register: (email: string, password: string, name: string, isTrainer: boolean) => {
+      if (useMock) {
+        return Promise.resolve({
+          user: mockTrainer,
+          tokens: mockTokens
+        });
+      }
+
+      return apiRequest<{ user: User; tokens: Tokens }>('/api/auth/registration', 'POST', {
+        email, password, name, isTrainer
+      });
+    },
   
   // Вход пользователя
-  login: (email: string, password: string) => 
-    apiRequest<{ user: User; tokens: Tokens }>('/api/auth/login', 'POST', {
-      email,
-      password
-    }),
+  login: (email: string, password: string) => {
+      if (useMock) {
+        return Promise.resolve({
+          user: mockUser,
+          tokens: mockTokens
+        });
+      }
+
+      return apiRequest<{ user: User; tokens: Tokens }>('/api/auth/login', 'POST', {
+        email,
+        password
+      });
+  },
     
   // Получение данных текущего пользователя
-  getCurrentUser: () => 
-    apiRequest<User>('/api/users/me'),
+  getCurrentUser: () => {
+    if (useMock) {
+      return Promise.reject({
+        status: 401,
+        message: "Unauthorized"
+      });
+    }
+    apiRequest<User>('/api/users/me');
+  },
 
   // Обновление токенов
   refreshTokens: () => 
@@ -86,8 +108,12 @@ export const authService = {
 // Сервисы для работы с занятиями
 export const classesService = {
   // Получение всех занятий
-  getAllClasses: () => 
-    apiRequest<Class[]>('/api/classes'),
+  getAllClasses: () => {
+    if (useMock) {
+      return Promise.resolve(mockClasses);
+    }
+    apiRequest<Class[]>('/api/classes');
+  },
   
   // Получение занятия по ID
   getClassById: (id: string) => 
@@ -106,8 +132,18 @@ export const classesService = {
     apiRequest<null>(`/api/classes/${id}`, 'DELETE'),
 
   // Получение занятий тренера
-  getTrainerClasses: () => 
-    apiRequest<Class[]>('/api/trainers/classes'),
+    getTrainerClasses: () => {
+      if (useMock) {
+        let trainerClasses: Class[] = [];
+        for(let danceClass of mockClasses) {
+          if(danceClass.trainer.id === mockTrainer.id) {
+            trainerClasses.push(danceClass);
+          }
+        }
+        return trainerClasses;
+      }
+      return apiRequest<Class[]>('/api/trainers/classes')
+    },
     
   // Получение учеников тренера НЕ ИСПОЛЬЗУЕТСЯ                                               
   getTrainerStudents: () => 
@@ -121,8 +157,18 @@ export const enrollmentService = {
     apiRequest<null>('/api/classes/enrollments', 'POST', { classId }),
   
   // Получение записей пользователя
-  getUserEnrollments: () => 
-    apiRequest<Class[]>('/api/classes/enrollments'),
+  getUserEnrollments: () => {
+    if (useMock) {
+      let userEnrollments: Class[] = [];
+      for(let enroll of mockEnrollments) {
+        if(enroll.enrolledStudents.includes(mockUser.id)) {
+          userEnrollments.push(enroll);
+        }
+      }
+      return userEnrollments
+    }
+    return apiRequest<Class[]>('/api/classes/enrollments');
+  },
   
   // Отмена записи
   cancelEnrollment: (classId: string) => 

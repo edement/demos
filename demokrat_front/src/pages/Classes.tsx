@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import Navbar from '@/components/Navbar';
 import ClassCard from '@/components/ClassCard';
-import { Class } from '@/types';
+import { Class } from '@/types/types';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
@@ -16,7 +16,7 @@ const Classes = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   
-  const isTrainer = user.isTrainer;
+  const isTrainer = user == null ? false : user.isTrainer;
 
   useEffect(() => {
     fetchClasses();

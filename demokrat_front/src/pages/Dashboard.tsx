@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
-import { Class } from '@/types';
+import { Class } from '@/types/types';
 import ClassCard from '@/components/ClassCard';
 import { Link } from 'react-router-dom';
 import { PlusCircle, UserCircle } from 'lucide-react';
@@ -18,7 +18,7 @@ const Dashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
   
-  const isTrainer = user.isTrainer;
+  const isTrainer = user == null ? false : user.isTrainer;
 
   // Redirect if not authenticated
   useEffect(() => {

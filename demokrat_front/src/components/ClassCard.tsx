@@ -1,5 +1,5 @@
 import React from 'react';
-import { Class } from '@/types';
+import { Class } from '@/types/types';
 import { Calendar, Clock, MapPin, DollarSign, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/context/AuthContext';
@@ -18,9 +18,9 @@ const ClassCard = ({ danceClass, onEnroll, isEnrolled = false }: ClassCardProps)
   const { toast } = useToast();
   const navigate = useNavigate();
   
-  const isStudent = !user.isTrainer;
-  const isTrainer = user.isTrainer;
-  const isClassTrainer = user?.id === danceClass.trainer.id;
+  const isStudent = user == null ? false : !user.isTrainer;
+  const isTrainer = user == null ? false : user.isTrainer;
+  const isClassTrainer = user == null ? false : user?.id === danceClass.trainer.id;
   
   const handleEnroll = () => {
     if (!user) {

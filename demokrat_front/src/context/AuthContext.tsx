@@ -1,6 +1,6 @@
 
 import React, { createContext, useState, useContext, useEffect } from 'react';
-import { Tokens, User } from '../types';
+import { Tokens, User } from '../types/types';
 import { useToast } from '@/components/ui/use-toast';
 import { authService } from '@/services/api';
 
