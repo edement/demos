@@ -1,0 +1,34 @@
+package config
+
+type Config struct {
+	App      AppConfig      `mapstructure:"app"`
+	Server   ServerConfig   `mapstructure:"server"`
+	Database DatabaseConfig `mapstructure:"database"`
+}
+
+type AppConfig struct {
+	Name        string `mapstructure:"name"`
+	Version     string `mapstructure:"version"`
+	Environment string `mapstructure:"environment"` // dev, staging, prod
+	Debug       bool   `mapstructure:"debug"`
+}
+
+type ServerConfig struct {
+	Host string `mapstructure:"host"`
+	Port string `mapstructure:"port"`
+	//MaxHeaderBytes  int           `mapstructure:"max_header_bytes"`
+	//TLS             TLSConfig     `mapstructure:"tls"`
+	//CORS            CORSConfig    `mapstructure:"cors"`
+}
+
+type DatabaseConfig struct {
+	Driver   string `mapstructure:"driver"` // postgres, mysql
+	Addres   string `mapstructure:"addres"`
+	Username string `mapstructure:"username"`
+	Password string `mapstructure:"password"` // Из ENV!
+	Database string `mapstructure:"database"`
+	SSLMode  string `mapstructure:"ssl_mode"`
+	//MaxOpenConns    int           `mapstructure:"max_open_conns"`
+	//MaxIdleConns    int           `mapstructure:"max_idle_conns"`
+	//ConnMaxLifetime time.Duration `mapstructure:"conn_max_lifetime"`
+}
