@@ -4,10 +4,12 @@ import (
 	"context"
 	"database/sql"
 	"time"
+
+	_ "github.com/lib/pq"
 )
 
 type Storage struct {
-	Posts interface {
+	Classes interface {
 		Create(context.Context, *Class) error
 	}
 	Users interface {
@@ -17,8 +19,8 @@ type Storage struct {
 
 func NewStorage(db *sql.DB) Storage {
 	return Storage{
-		Posts: &ClassStorage{db},
-		Users: &UsersStorage{db},
+		Classes: &ClassStorage{db},
+		Users:   &UsersStorage{db},
 	}
 }
 
