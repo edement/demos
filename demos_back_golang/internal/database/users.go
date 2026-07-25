@@ -6,11 +6,11 @@ import (
 )
 
 type User struct {
-	ID           int64  `json:"id"`
-	Username     string `json:"username"`
-	Email        string `json:"email"`
-	PasswordHash string `json:"-"`
-	CreatedAt    string `json:"created_at"`
+	ID        int64  `json:"id"`
+	Username  string `json:"username"`
+	Email     string `json:"email"`
+	Password  string `json:"-"`
+	CreatedAt string `json:"created_at"`
 }
 
 type UsersStorage struct {
@@ -27,7 +27,7 @@ func (s *UsersStorage) Create(ctx context.Context, user *User) error {
 		ctx,
 		query,
 		user.Username,
-		user.PasswordHash,
+		user.Password,
 		user.Email,
 	).Scan(
 		&user.ID,

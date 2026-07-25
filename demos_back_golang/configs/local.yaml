@@ -1,5 +1,5 @@
 env: "local" # local, dev, prod
-storage_path: "postgress://postgres:postgres@localhost/demos?sslmode=disable"
+storage_path: "postgres://postgres:postgres@localhost/demos?sslmode=disable" # `driver://username:password@addres/database`
 server:
   host: "localhost"
   port: "8080"

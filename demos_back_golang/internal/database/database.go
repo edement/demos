@@ -23,7 +23,9 @@ func NewStorage(db *sql.DB) Storage {
 }
 
 func NewDatabase(addr string) (*sql.DB, error) {
+	// TODO заменить на подтягивание из конфига
 	connString := "postgres://postgres:postgres@localhost/demos?sslmode=disable"
+
 	db, err := sql.Open("postgres", connString)
 	if err != nil {
 		return nil, err
@@ -32,14 +34,14 @@ func NewDatabase(addr string) (*sql.DB, error) {
 	// Если будет необходимо можно настроить через config файл, так же
 	// раскомментить в config.go
 	/*
-	db.SetMaxOpenConns(maxOpenConns)
-	db.SetMaxIdleConns(maxIdleConns)
+		db.SetMaxOpenConns(maxOpenConns)
+		db.SetMaxIdleConns(maxIdleConns)
 
-	duration, err := time.ParseDuration(maxIdleTime)
-	if err != nil {
-		return nil, err
-	}
-	db.SetConnMaxIdleTime(duration)
+		duration, err := time.ParseDuration(maxIdleTime)
+		if err != nil {
+			return nil, err
+		}
+		db.SetConnMaxIdleTime(duration)
 	*/
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
