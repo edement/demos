@@ -7,9 +7,9 @@ type Config struct {
 }
 
 type AppConfig struct {
-	Name        string `mapstructure:"name"`
-	Version     string `mapstructure:"version"`
-	Environment string `mapstructure:"env"` // local, dev, prod
+	Name    string `mapstructure:"name"`
+	Version string `mapstructure:"version"`
+	Env     string `mapstructure:"env"` // local, dev, prod
 }
 
 type ServerConfig struct {
@@ -21,12 +21,13 @@ type ServerConfig struct {
 }
 
 type DatabaseConfig struct {
-	Driver   string `mapstructure:"driver"` // postgres, mysql
-	Addres   string `mapstructure:"addres"`
-	Username string `mapstructure:"username"`
-	Password string `mapstructure:"password"` // Из ENV!
-	Database string `mapstructure:"database"`
-	SSLMode  string `mapstructure:"ssl_mode"`
+	CoonectionString string
+	Driver           string `mapstructure:"driver"` // postgres, mysql
+	Address          string `mapstructure:"address"`
+	Username         string `mapstructure:"username"`
+	Password         string `mapstructure:"password"` // Из ENV!
+	Database         string `mapstructure:"database"`
+	SSLMode          string `mapstructure:"ssl_mode"`
 	//MaxOpenConns    int           `mapstructure:"max_open_conns"`
 	//MaxIdleConns    int           `mapstructure:"max_idle_conns"`
 	//ConnMaxLifetime time.Duration `mapstructure:"conn_max_lifetime"`

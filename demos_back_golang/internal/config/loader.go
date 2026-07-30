@@ -76,8 +76,8 @@ func (c *Config) Validate() error {
 	}
 
 	// Database
-	if c.Database.Addres == "" {
-		return fmt.Errorf("database addres is required")
+	if c.Database.Address == "" {
+		return fmt.Errorf("database address is required")
 	}
 	if c.Database.Username == "" {
 		return fmt.Errorf("database username is required")
@@ -88,8 +88,8 @@ func (c *Config) Validate() error {
 
 	// Environment
 	validEnvs := map[string]bool{"local": true, "dev": true, "prod": true}
-	if !validEnvs[c.App.Environment] {
-		return fmt.Errorf("invalid environment: %s", c.App.Environment)
+	if !validEnvs[c.App.Env] {
+		return fmt.Errorf("invalid environment: %s", c.App.Env)
 	}
 
 	return nil

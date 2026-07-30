@@ -9,6 +9,7 @@ import (
 	"demos_back_golang/internal/config"
 	"demos_back_golang/internal/database"
 	"demos_back_golang/internal/lib/slogpretty/handlers/slogpretty"
+	"demos_back_golang/internal/lib/slogpretty/sl"
 )
 
 const (
@@ -25,14 +26,15 @@ func main() {
 	if err != nil {
 		log.Fatal("Error while loading config: ", err) // Посмотреть реализацию функции MustLoad config в видео, как там логируется инфа
 	}
-	log.Println(cfg)
 
-	logger := setupLogger(cfg.App.Environment)
-	logger.Info("Logger is working correctly")
+	logger := setupLogger(cfg.App.Env)
+	logger.Debug("Logger is working correctly")
 
-	db, err := database.NewDatabase(cfg.Database.Addres)
+	logger.Debug("Config loaded:", "Config", cfg)
+
+	db, err := database.NewDatabase(cfg.Database.Address)
 	if err != nil {
-		logger.Error("Failed to connect to database", "error", err)
+		logger.Error("Failed to connect to database", sl.Err(err))
 	}
 	defer db.Close()
 
@@ -48,7 +50,7 @@ func main() {
 
 	err = app.run(mux)
 	if err != nil {
-		logger.Error("Failed to run application %w", "error", err)
+		logger.Error("Failed to run application", sl.Err(err))
 	}
 }
 
