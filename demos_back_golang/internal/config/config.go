@@ -9,8 +9,7 @@ type Config struct {
 type AppConfig struct {
 	Name        string `mapstructure:"name"`
 	Version     string `mapstructure:"version"`
-	Environment string `mapstructure:"environment"` // dev, staging, prod
-	Debug       bool   `mapstructure:"debug"`
+	Environment string `mapstructure:"env"` // local, dev, prod
 }
 
 type ServerConfig struct {

@@ -42,10 +42,10 @@ func Load(configPath string) (Config, error) {
 }
 
 func SetDefault() {
+	// App
 	viper.SetDefault("app.name", "myapp")
 	viper.SetDefault("app.version", "1.0.0")
-	viper.SetDefault("app.environment", "development")
-	viper.SetDefault("app.debug", false)
+	viper.SetDefault("app.env", "local")
 
 	// Server
 	viper.SetDefault("server.host", "localhost")
@@ -87,7 +87,7 @@ func (c *Config) Validate() error {
 	}
 
 	// Environment
-	validEnvs := map[string]bool{"development": true, "staging": true, "production": true}
+	validEnvs := map[string]bool{"local": true, "dev": true, "prod": true}
 	if !validEnvs[c.App.Environment] {
 		return fmt.Errorf("invalid environment: %s", c.App.Environment)
 	}

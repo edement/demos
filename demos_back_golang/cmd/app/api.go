@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"log/slog"
 	"net/http"
 	"time"
 
@@ -13,7 +14,8 @@ import (
 )
 
 type application struct {
-	config config.Config
+	logger  *slog.Logger
+	config  config.Config
 	storage database.Storage
 }
 
@@ -50,7 +52,8 @@ func (app *application) run(mux http.Handler) error {
 		IdleTimeout:  time.Minute,
 	}
 
-	log.Printf("server starts on %s", srv.Addr)
+	app.logger.Info("Server starts on", srv.Addr)
+	log.Printf("-server starts on %s", srv.Addr)
 
 	return srv.ListenAndServe()
 }

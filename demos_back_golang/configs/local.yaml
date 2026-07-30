@@ -1,11 +1,13 @@
-env: "local" # local, dev, prod
+app:
+  name: "demos"
+  env: "local" # local, dev, prod
 storage_path: "postgres://postgres:postgres@localhost/demos?sslmode=disable" # `driver://username:password@addres/database`
 server:
   host: "localhost"
   port: "8080"
 database:
   driver: "postgres"
-  addr: "localhost:5432"
+  addr: "localhost:5433"
   username: "postgres"
   password: "postgres"
   database: "demos"
