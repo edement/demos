@@ -7,9 +7,10 @@ import (
 	"os"
 
 	"demos_back_golang/internal/config"
-	"demos_back_golang/internal/database"
+	"demos_back_golang/internal/handlers"
 	"demos_back_golang/internal/lib/slogpretty/handlers/slogpretty"
 	"demos_back_golang/internal/lib/slogpretty/sl"
+	"demos_back_golang/internal/storage"
 )
 
 const (
@@ -19,6 +20,7 @@ const (
 )
 
 func main() {
+	// Config
 	configPath := flag.String("config", "./configs/local.yaml", "path to config file")
 	flag.Parse()
 
@@ -27,23 +29,31 @@ func main() {
 		log.Fatal("Error while loading config: ", err) // Посмотреть реализацию функции MustLoad config в видео, как там логируется инфа
 	}
 
+	// Logger
 	logger := setupLogger(cfg.App.Env)
 	logger.Debug("Logger is working correctly")
 
 	logger.Debug("Config loaded:", "Config", cfg)
 
-	db, err := database.NewDatabase(cfg.Database)
+	// Database & Storage
+	db, err := storage.NewDatabase(cfg.Database)
 	if err != nil {
 		logger.Error("Failed to connect to database", sl.Err(err))
+		os.Exit(1)
 	}
 	defer db.Close()
 
-	storage := database.NewStorage(db)
+	store := storage.NewStorage(db)
 
+	// Dependencies
+	userHandler := handlers.NewUserHandler(store.Users, logger)
+
+	// App
 	app := &application{
 		logger:  logger,
 		config:  cfg,
-		storage: storage,
+		storage: store,
+		userHandler: userHandler,
 	}
 
 	mux := app.mount()
@@ -51,6 +61,7 @@ func main() {
 	err = app.run(mux)
 	if err != nil {
 		logger.Error("Failed to run application", sl.Err(err))
+		os.Exit(1)
 	}
 }
 

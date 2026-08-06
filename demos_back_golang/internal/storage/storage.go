@@ -1,27 +1,27 @@
-package database
+package storage
 
 import (
 	"context"
 	"database/sql"
 	"demos_back_golang/internal/config"
+	"demos_back_golang/internal/models"
 	"time"
 
 	_ "github.com/lib/pq"
 )
 
-type Storage struct {
-	Classes interface {
-		Create(context.Context, *Class) error
-	}
-	Users interface {
-		Create(context.Context, *User) error
-	}
+type UserRepository interface {
+	CreateUser(ctx context.Context, user *models.User) (*models.User, error)
 }
 
-func NewStorage(db *sql.DB) Storage {
-	return Storage{
-		Classes: &ClassStorage{db},
-		Users:   &UsersStorage{db},
+type Storage struct {
+	Users UserRepository
+}
+
+func NewStorage(db *sql.DB) *Storage {
+	return &Storage{
+		//Classes: &ClassStorage{db},
+		Users: NewUserStorage(db),
 	}
 }
 

@@ -8,7 +8,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-func Load(configPath string) (Config, error) {
+func Load(configPath string) (*Config, error) {
 	SetDefault()
 	var cfg Config
 
@@ -23,7 +23,7 @@ func Load(configPath string) (Config, error) {
 	}
 
 	if err := viper.ReadInConfig(); err != nil {
-		return cfg, fmt.Errorf("failed to read config file: %w", err)
+		return &cfg, fmt.Errorf("failed to read config file: %w", err)
 	}
 
 	viper.AutomaticEnv()
@@ -31,14 +31,14 @@ func Load(configPath string) (Config, error) {
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 
 	if err := viper.Unmarshal(&cfg); err != nil {
-		return cfg, fmt.Errorf("failed to unmarshal the config: %w", err)
+		return &cfg, fmt.Errorf("failed to unmarshal the config: %w", err)
 	}
 
 	if err := cfg.Validate(); err != nil {
-		return cfg, fmt.Errorf("config validation failed: %w", err)
+		return &cfg, fmt.Errorf("config validation failed: %w", err)
 	}
 
-	return cfg, nil
+	return &cfg, nil
 }
 
 func SetDefault() {

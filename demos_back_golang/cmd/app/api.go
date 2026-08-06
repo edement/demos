@@ -6,16 +6,18 @@ import (
 	"time"
 
 	"demos_back_golang/internal/config"
-	"demos_back_golang/internal/database"
+	"demos_back_golang/internal/handlers"
+	"demos_back_golang/internal/storage"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 )
 
 type application struct {
-	logger  *slog.Logger
-	config  config.Config
-	storage database.Storage
+	logger      *slog.Logger
+	config      *config.Config
+	storage     *storage.Storage
+	userHandler *handlers.UserHandler
 }
 
 func (app *application) mount() http.Handler {
@@ -35,7 +37,7 @@ func (app *application) mount() http.Handler {
 		r.Get("/health", app.HealthCheck)
 
 		r.Route("/users", func(r chi.Router) {
-			//r.Post("/register", app.userService.Register)
+			r.Post("/register", app.userHandler.CreateUser)
 		})
 
 		r.Route("/classes", func(r chi.Router) {
