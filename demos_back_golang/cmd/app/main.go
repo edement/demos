@@ -32,7 +32,7 @@ func main() {
 
 	logger.Debug("Config loaded:", "Config", cfg)
 
-	db, err := database.NewDatabase(cfg.Database.Address)
+	db, err := database.NewDatabase(cfg.Database)
 	if err != nil {
 		logger.Error("Failed to connect to database", sl.Err(err))
 	}

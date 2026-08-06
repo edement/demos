@@ -4,10 +4,10 @@ app:
 storage_path: "postgres://postgres:postgres@localhost/demos?sslmode=disable" # `driver://username:password@addres/database`
 server:
   host: "localhost"
-  port: "8080"
+  port: "8081"
 database:
   driver: "postgres"
-  address: "localhost:5433"
+  address: "localhost:5432"
   username: "postgres"
   password: "postgres"
   database: "demos"

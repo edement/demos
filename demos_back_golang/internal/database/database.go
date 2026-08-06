@@ -3,6 +3,7 @@ package database
 import (
 	"context"
 	"database/sql"
+	"demos_back_golang/internal/config"
 	"time"
 
 	_ "github.com/lib/pq"
@@ -24,11 +25,8 @@ func NewStorage(db *sql.DB) Storage {
 	}
 }
 
-func NewDatabase(addr string) (*sql.DB, error) {
-	// TODO заменить на подтягивание из конфига
-	connString := "postgres://postgres:postgres@localhost/demos?sslmode=disable"
-
-	db, err := sql.Open("postgres", connString)
+func NewDatabase(cfg config.DatabaseConfig) (*sql.DB, error) {
+	db, err := sql.Open(cfg.Driver, cfg.DSN())
 	if err != nil {
 		return nil, err
 	}

@@ -1,5 +1,7 @@
 package config
 
+import "fmt"
+
 type Config struct {
 	App      AppConfig      `mapstructure:"app"`
 	Server   ServerConfig   `mapstructure:"server"`
@@ -31,4 +33,12 @@ type DatabaseConfig struct {
 	//MaxOpenConns    int           `mapstructure:"max_open_conns"`
 	//MaxIdleConns    int           `mapstructure:"max_idle_conns"`
 	//ConnMaxLifetime time.Duration `mapstructure:"conn_max_lifetime"`
+}
+
+func (c DatabaseConfig) DSN() string {
+	// Вид строки подключения "postgres://postgres:postgres@localhost:5432/demos?sslmode=disable"
+	return fmt.Sprintf(
+		"%s://%s:%s@%s/%s?sslmode=%s",
+		c.Driver, c.Username, c.Password, c.Address, c.Database, c.SSLMode,
+	)
 }
