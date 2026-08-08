@@ -37,7 +37,8 @@ func (app *application) mount() http.Handler {
 		r.Get("/health", app.HealthCheck)
 
 		r.Route("/users", func(r chi.Router) {
-			r.Post("/register", app.userHandler.CreateUser)
+			r.Post("/register", app.userHandler.Register)
+			r.Post("/login", app.userHandler.Login)
 		})
 
 		r.Route("/classes", func(r chi.Router) {

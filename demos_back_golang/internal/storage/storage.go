@@ -11,7 +11,8 @@ import (
 )
 
 type UserRepository interface {
-	CreateUser(ctx context.Context, user *models.User) (*models.User, error)
+	CreateUser(ctx context.Context, request models.RegisterRequest) (models.UserResponse, error)
+	GetUser(ctx context.Context, email string) (models.User, error)
 }
 
 type Storage struct {
