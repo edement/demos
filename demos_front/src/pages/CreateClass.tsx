@@ -6,6 +6,7 @@ import ClassForm from '@/components/ClassForm';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/components/ui/use-toast';
 import { classesService } from '@/services/api';
+import { Class } from '@/types/types';
 
 interface ClassFormData {
   date: string;
@@ -13,6 +14,20 @@ interface ClassFormData {
   location: string;
   price: number;
 }
+
+type CreateClassRequest = Omit<Class, 'id' | 'trainer' | 'enrolledStudents'>;
+
+const mapFormDataToClassRequest = (data: ClassFormData): CreateClassRequest => {
+  const datetime = new Date(`${data.date}T${data.time}`).toISOString();
+
+  return {
+    datetime,
+    location: data.location,
+    price: data.price,
+    // если в Class есть другие обязательные поля (title, duration и т.п.),
+    // их нужно добавить сюда либо получить из формы
+  };
+};
 
 const CreateClass = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -36,7 +51,8 @@ const CreateClass = () => {
     setIsSubmitting(true);
     
     try {
-      await classesService.createClass(data);
+      const classRequest = mapFormDataToClassRequest(data)
+      await classesService.createClass(classRequest);
       
       toast({
         title: "Занятие создано",

@@ -10,6 +10,10 @@ type ClassStorage struct {
 	db *sql.DB
 }
 
+func NewClassStorage(db *sql.DB) *ClassStorage {
+	return &ClassStorage{db: db}
+}
+
 func (s *ClassStorage) Create(ctx context.Context, class *models.Class) error {
 	query := `
 		INSERT INTO classes (datetime, location, price, trainer_id)

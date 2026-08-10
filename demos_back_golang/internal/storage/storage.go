@@ -15,14 +15,20 @@ type UserRepository interface {
 	GetUser(ctx context.Context, email string) (models.User, error)
 }
 
+type ClassRepository interface {
+	//CreateClass(ctx context.Context, request models.RegisterRequest) (models.UserResponse, error)
+	//GetClassById(ctx context.Context, email string) (models.User, error)
+}
+
 type Storage struct {
-	Users UserRepository
+	Users   UserRepository
+	Classes ClassRepository
 }
 
 func NewStorage(db *sql.DB) *Storage {
 	return &Storage{
-		//Classes: &ClassStorage{db},
-		Users: NewUserStorage(db),
+		Classes: NewClassStorage(db),
+		Users:   NewUserStorage(db),
 	}
 }
 

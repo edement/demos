@@ -7,8 +7,7 @@ export interface User {
 
 export interface Class {
   id: string;
-  date: string;
-  time: string;
+  datetime: string;
   location: string;
   price: number;
   trainer: {
