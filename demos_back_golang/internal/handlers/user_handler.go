@@ -6,6 +6,7 @@ import (
 	"demos_back_golang/internal/models"
 	"demos_back_golang/internal/storage"
 	"encoding/json"
+	"golang.org/x/crypto/bcrypt"
 	"log/slog"
 	"net/http"
 	"time"
@@ -36,6 +37,15 @@ func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
 	// Use storage
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second) // Learn about context (for what, why, etc...)
 	defer cancel()
+
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(regReq.Password), bcrypt.DefaultCost)
+	if err != nil {
+		h.logger.Error("Failed to hash password", sl.Err(err))
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	regReq.Password = string(hashedPassword)
 
 	user, err := h.storage.CreateUser(ctx, regReq)
 	if err != nil {
@@ -71,9 +81,9 @@ func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if loginReq.Password != user.Password {
+	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(loginReq.Password)); err != nil {
 		h.logger.Error("Auth error", sl.Err(err))
-		http.Error(w, "Invalid email or password", http.StatusBadRequest)
+		http.Error(w, "Invalid email or password", http.StatusUnauthorized)
 		return
 	}
 
