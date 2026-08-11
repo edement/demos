@@ -35,11 +35,7 @@ func (s *UserStorage) CreateUser(ctx context.Context, request models.RegisterReq
 		&user.ID,
 	)
 
-	if err != nil {
-		return user, err
-	}
-
-	return user, nil
+	return user, err
 }
 
 func (s *UserStorage) GetUser(ctx context.Context, email string) (models.User, error) {
@@ -61,9 +57,6 @@ func (s *UserStorage) GetUser(ctx context.Context, email string) (models.User, e
 		&user.Password,
 		&user.IsTrainer,
 	)
-	if err != nil {
-		return user, err
-	}
-
-	return user, nil
+	// TODO: Проверка ошибки Системная или Пользователь не найден
+	return user, err
 }

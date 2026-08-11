@@ -16,8 +16,15 @@ type CreateClassRequest struct {
 	Price    int64  `json:"price"`
 }
 
+type Trainer struct {
+	ID       int64  `json:"id"`
+	Username string `json:"username"`
+}
+
 type ClassResponse struct {
-	DateTime string `json:"datetime"`
-	Location string `json:"location"`
-	Price    int64  `json:"price"`
+	ID       int64   `json:"id"`
+	DateTime string  `json:"datetime"`
+	Location string  `json:"location"`
+	Price    int64   `json:"price"`
+	Trainer  Trainer `json:"trainer"`
 }

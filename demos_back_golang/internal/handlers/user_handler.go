@@ -6,10 +6,11 @@ import (
 	"demos_back_golang/internal/models"
 	"demos_back_golang/internal/storage"
 	"encoding/json"
-	"golang.org/x/crypto/bcrypt"
 	"log/slog"
 	"net/http"
 	"time"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 type UserHandler struct {
@@ -27,7 +28,6 @@ func NewUserHandler(storage storage.UserRepository, logger *slog.Logger) *UserHa
 func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
 	// Structure validation
 	regReq := models.RegisterRequest{}
-	// TODO: password -> password_hash
 	if err := json.NewDecoder(r.Body).Decode(&regReq); err != nil {
 		h.logger.Error("Failed to decode user", sl.Err(err))
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -38,6 +38,7 @@ func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second) // Learn about context (for what, why, etc...)
 	defer cancel()
 
+	h.logger.Debug("Request Password from client", "password", regReq.Password)
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(regReq.Password), bcrypt.DefaultCost)
 	if err != nil {
 		h.logger.Error("Failed to hash password", sl.Err(err))
@@ -75,6 +76,7 @@ func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 	defer cancel()
 
 	user, err := h.storage.GetUser(ctx, loginReq.Email)
+	// TODO: Проверка ошибки Системная или Пользователь не найден
 	if err != nil {
 		h.logger.Error("Failed to Get user", sl.Err(err))
 		http.Error(w, err.Error(), http.StatusInternalServerError)

@@ -32,3 +32,27 @@ func (s *ClassStorage) CreateClass(ctx context.Context, class models.CreateClass
 
 	return err
 }
+
+func (s *ClassStorage) GetClassById(ctx context.Context, classId int64) (models.ClassResponse, error) {
+	query := `
+		SELECT classes.id, datetime, location, price, users.id, users.username FROM classes
+		JOIN users ON classes.trainer_id = users.id
+		WHERE classes.id = $1
+	`
+	class := models.ClassResponse{}
+
+	err := s.db.QueryRowContext(
+		ctx,
+		query,
+		classId,
+	).Scan(
+		&class.ID,
+		&class.DateTime,
+		&class.Location,
+		&class.Price,
+		&class.Trainer.ID,
+		&class.Trainer.Username,
+	)
+
+	return class, err
+}

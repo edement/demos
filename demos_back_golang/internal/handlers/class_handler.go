@@ -8,7 +8,10 @@ import (
 	"encoding/json"
 	"log/slog"
 	"net/http"
+	"strconv"
 	"time"
+
+	"github.com/go-chi/chi/v5"
 )
 
 type ClassHandler struct {
@@ -43,4 +46,33 @@ func (h *ClassHandler) CreateClass(w http.ResponseWriter, r *http.Request) {
 	}
 	// Response
 	w.WriteHeader(http.StatusCreated)
+}
+
+func (h *ClassHandler) GetClassById(w http.ResponseWriter, r *http.Request) {
+	// Structure validation
+	classID, err := strconv.ParseInt(chi.URLParam(r, "classId"), 10, 64)
+	if err != nil {
+		h.logger.Error("Failed to parse class id", sl.Err(err))
+		http.Error(w, "Not found", http.StatusNotFound)
+		return
+	}
+
+	// Use repository
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second) // Learn about context (for what, why, etc...)
+	defer cancel()
+
+	// TODO: Проверка ошибки Системная или Класс не найден
+	class, err := h.storage.GetClassById(ctx, classID)
+	if err != nil {
+		h.logger.Error("Failed to get class", sl.Err(err))
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	// Response
+	w.Header().Set("content-type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	if err = json.NewEncoder(w).Encode(class); err != nil {
+		h.logger.Error("Failed to decode response", sl.Err(err))
+	}
 }
