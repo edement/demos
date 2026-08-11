@@ -14,7 +14,7 @@ type User struct {
 type RegisterRequest struct {
 	Username  string `json:"username"`
 	Email     string `json:"email"`
-	Password  string `json:"-"`
+	Password  string `json:"password"`
 	IsTrainer bool   `json:"isTrainer"`
 }
 
@@ -27,5 +27,5 @@ type UserResponse struct {
 
 type LoginRequest struct {
 	Email    string `json:"email"`
-	Password string `json:"-"`
+	Password string `json:"password"`
 }
