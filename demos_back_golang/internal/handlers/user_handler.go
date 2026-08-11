@@ -57,11 +57,15 @@ func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
 
 	// Response
 	// TODO: JWT tokens
+	response, err := json.Marshal(user)
+	if err != nil {
+		h.logger.Error("Failed to decode response", sl.Err(err))
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
 	w.Header().Set("Content-type", "application/json")
 	w.WriteHeader(http.StatusCreated)
-	if err = json.NewEncoder(w).Encode(user); err != nil {
-		h.logger.Error("Error while encoding responce", sl.Err(err))
-	}
+	w.Write(response)
 }
 
 func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
@@ -91,18 +95,22 @@ func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 
 	// Response
 	// TODO: JWT tokens
-	response := models.UserResponse{
+	userResponse := models.UserResponse{
 		ID:        user.ID,
 		Username:  user.Username,
 		Email:     user.Email,
 		IsTrainer: user.IsTrainer,
 	}
 
+	response, err := json.Marshal(userResponse)
+	if err != nil {
+		h.logger.Error("Failed to decode response", sl.Err(err))
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
 	w.Header().Set("Content-type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	if err := json.NewEncoder(w).Encode(response); err != nil {
-		h.logger.Error("Error while encoding responce", sl.Err(err))
-	}
+	w.Write(response)
 }
 
 func (h *UserHandler) Me(w http.ResponseWriter, r *http.Request) {
