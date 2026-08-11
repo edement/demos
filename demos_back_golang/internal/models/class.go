@@ -15,3 +15,9 @@ type CreateClassRequest struct {
 	Location string `json:"location"`
 	Price    int64  `json:"price"`
 }
+
+type ClassResponse struct {
+	DateTime string `json:"datetime"`
+	Location string `json:"location"`
+	Price    int64  `json:"price"`
+}

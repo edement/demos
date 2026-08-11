@@ -47,13 +47,15 @@ func main() {
 
 	// Dependencies
 	userHandler := handlers.NewUserHandler(store.Users, logger)
+	classHandler := handlers.NewClassHandler(store.Classes, logger)
 
 	// App
 	app := &application{
-		logger:  logger,
-		config:  cfg,
-		storage: store,
-		userHandler: userHandler,
+		logger:       logger,
+		config:       cfg,
+		storage:      store,
+		userHandler:  userHandler,
+		classHandler: classHandler,
 	}
 
 	mux := app.mount()

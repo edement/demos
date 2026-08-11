@@ -14,10 +14,11 @@ import (
 )
 
 type application struct {
-	logger      *slog.Logger
-	config      *config.Config
-	storage     *storage.Storage
-	userHandler *handlers.UserHandler
+	logger       *slog.Logger
+	config       *config.Config
+	storage      *storage.Storage
+	userHandler  *handlers.UserHandler
+	classHandler *handlers.ClassHandler
 }
 
 func (app *application) mount() http.Handler {
@@ -42,7 +43,7 @@ func (app *application) mount() http.Handler {
 		})
 
 		r.Route("/classes", func(r chi.Router) {
-			//r.Post("/create", app.classService.Create)
+			r.Post("/create", app.classHandler.CreateClass)
 		})
 	})
 

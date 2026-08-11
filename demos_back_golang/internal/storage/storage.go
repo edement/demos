@@ -16,7 +16,7 @@ type UserRepository interface {
 }
 
 type ClassRepository interface {
-	//CreateClass(ctx context.Context, request models.RegisterRequest) (models.UserResponse, error)
+	CreateClass(ctx context.Context, request models.CreateClassRequest) error
 	//GetClassById(ctx context.Context, email string) (models.User, error)
 }
 
