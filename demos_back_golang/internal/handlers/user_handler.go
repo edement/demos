@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -36,7 +37,6 @@ func NewUserHandler(
 }
 
 func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
-	// Structure validation
 	regReq := models.RegisterRequest{}
 	if err := json.NewDecoder(r.Body).Decode(&regReq); err != nil {
 		h.logger.Error("Failed to decode user", sl.Err(err))
@@ -44,19 +44,16 @@ func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Use storage
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second) // Learn about context (for what, why, etc...)
-	defer cancel()
-
-	h.logger.Debug("Request Password from client", "password", regReq.Password)
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(regReq.Password), bcrypt.DefaultCost)
 	if err != nil {
 		h.logger.Error("Failed to hash password", sl.Err(err))
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
-
 	regReq.Password = string(hashedPassword)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
 
 	user, err := h.storage.CreateUser(ctx, regReq)
 	if err != nil {
@@ -65,17 +62,29 @@ func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Response
-	// TODO: JWT tokens
-	response, err := json.Marshal(user)
+	accessToken, refreshToken, err := h.generateTokens(ctx, user.ID, user.Username, user.Email)
 	if err != nil {
-		h.logger.Error("Failed to decode response", sl.Err(err))
+		h.logger.Error("Failed to generate tokens", sl.Err(err))
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
+
+	response := map[string]interface{}{
+		"access_token":  accessToken,
+		"refresh_token": refreshToken,
+		"user": models.UserResponse{
+			ID:        user.ID,
+			Username:  user.Username,
+			Email:     user.Email,
+			IsTrainer: user.IsTrainer,
+		},
+	}
+
 	w.Header().Set("Content-type", "application/json")
 	w.WriteHeader(http.StatusCreated)
-	w.Write(response)
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		h.logger.Error("Error while encoding response", sl.Err(err))
+	}
 }
 
 func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
@@ -86,11 +95,10 @@ func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second) // Learn about context (for what, why, etc...)
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
 	user, err := h.storage.GetUser(ctx, loginReq.Email)
-	// TODO: Проверка ошибки Системная или Пользователь не найден
 	if err != nil {
 		h.logger.Error("Failed to Get user", sl.Err(err))
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -103,23 +111,9 @@ func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	accessToken, err := jwt.GenerateAccessToken(user.ID, user.Username, user.Email, h.jwtSecret)
+	accessToken, refreshToken, err := h.generateTokens(ctx, user.ID, user.Username, user.Email)
 	if err != nil {
-		h.logger.Error("Failed to generate access token", sl.Err(err))
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
-		return
-	}
-
-	refreshToken, err := jwt.GenerateRefreshToken(user.ID, h.jwtSecret)
-	if err != nil {
-		h.logger.Error("Failed to generate refresh token", sl.Err(err))
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
-		return
-	}
-
-	expiresAt := time.Now().Add(7 * 24 * time.Hour)
-	if err := h.refreshTokenStore.Save(ctx, user.ID, refreshToken, expiresAt); err != nil {
-		h.logger.Error("Failed to save refresh token", sl.Err(err))
+		h.logger.Error("Failed to generate tokens", sl.Err(err))
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
@@ -157,6 +151,9 @@ func (h *UserHandler) Refresh(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
 	claims, err := jwt.ValidateRefreshToken(req.RefreshToken, h.jwtSecret)
 	if err != nil {
 		h.logger.Error("Invalid refresh token", sl.Err(err))
@@ -164,10 +161,7 @@ func (h *UserHandler) Refresh(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
-	userID, err := h.refreshTokenStore.GetUserIDByToken(ctx, req.RefreshToken)
+	userID, familyID, err := h.refreshTokenStore.GetUserIDByToken(ctx, req.RefreshToken)
 	if err != nil {
 		h.logger.Error("Failed to check refresh token in DB", sl.Err(err))
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
@@ -184,7 +178,13 @@ func (h *UserHandler) Refresh(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := h.storage.GetUserByID(ctx, claims.UserID)
+	if err := h.refreshTokenStore.MarkTokenAsUsed(ctx, req.RefreshToken); err != nil {
+		h.logger.Error("Failed to mark refresh token as used", sl.Err(err))
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	user, err := h.storage.GetUserByID(ctx, userID)
 	if err != nil {
 		h.logger.Error("Failed to get user", sl.Err(err))
 		http.Error(w, "User not found", http.StatusInternalServerError)
@@ -198,13 +198,30 @@ func (h *UserHandler) Refresh(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	newRefreshToken, err := jwt.GenerateRefreshToken(user.ID, familyID, h.jwtSecret)
+	if err != nil {
+		h.logger.Error("Failed to generate new refresh token", sl.Err(err))
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	expiresAt := time.Now().Add(7 * 24 * time.Hour)
+	if err := h.refreshTokenStore.Save(ctx, user.ID, newRefreshToken, expiresAt, familyID); err != nil {
+		h.logger.Error("Failed to save new refresh token", sl.Err(err))
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
 	response := map[string]interface{}{
-		"access_token": newAccessToken,
+		"access_token":  newAccessToken,
+		"refresh_token": newRefreshToken,
 	}
 
 	w.Header().Set("Content-type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(response)
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		h.logger.Error("Error while encoding response", sl.Err(err))
+	}
 }
 
 func (h *UserHandler) Logout(w http.ResponseWriter, r *http.Request) {
@@ -237,6 +254,32 @@ func (h *UserHandler) Logout(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusNoContent)
+}
+
+func (h *UserHandler) generateTokens(
+	ctx context.Context,
+	userID int64,
+	username string,
+	email string,
+) (string, string, error) {
+	familyID := uuid.New()
+
+	accessToken, err := jwt.GenerateAccessToken(userID, username, email, h.jwtSecret)
+	if err != nil {
+		return "", "", err
+	}
+
+	refreshToken, err := jwt.GenerateRefreshToken(userID, familyID, h.jwtSecret)
+	if err != nil {
+		return "", "", err
+	}
+
+	expiresAt := time.Now().Add(7 * 24 * time.Hour)
+	if err := h.refreshTokenStore.Save(ctx, userID, refreshToken, expiresAt, familyID); err != nil {
+		return "", "", err
+	}
+
+	return accessToken, refreshToken, nil
 }
 
 func (h *UserHandler) Me(w http.ResponseWriter, r *http.Request) {

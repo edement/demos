@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/google/uuid"
 )
 
 type AccessTokenClaims struct {
@@ -15,7 +16,8 @@ type AccessTokenClaims struct {
 }
 
 type RefreshTokenClaims struct {
-	UserID int64 `json:"user_id"`
+	UserID   int64     `json:"user_id"`
+	FamilyID uuid.UUID `json:"family_id"` // Добавили!
 	jwt.RegisteredClaims
 }
 
@@ -35,9 +37,10 @@ func GenerateAccessToken(userID int64, username, email, secret string) (string, 
 	return token.SignedString([]byte(secret))
 }
 
-func GenerateRefreshToken(userID int64, secret string) (string, error) {
+func GenerateRefreshToken(userID int64, familyID uuid.UUID, secret string) (string, error) {
 	claims := RefreshTokenClaims{
-		UserID: userID,
+		UserID:   userID,
+		FamilyID: familyID,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(7 * 24 * time.Hour)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
