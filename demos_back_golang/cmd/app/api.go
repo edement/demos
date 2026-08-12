@@ -28,7 +28,6 @@ func (app *application) mount() http.Handler {
 	r.Use(middleware.RealIP)
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
-	//r.Use(middleware.URLFormat)
 
 	// Set a timeout value on the request context (ctx), that will signal
 	// through ctx.Done() yhat the request has timed out and further
@@ -48,6 +47,8 @@ func (app *application) mount() http.Handler {
 		r.Route("/classes", func(r chi.Router) {
 			r.Post("/create", app.classHandler.CreateClass)
 			r.Get("/{classId}", app.classHandler.GetClassById)
+			r.Delete("/{classId}", app.classHandler.DeleteClass)
+			r.Patch("/{classId}", app.classHandler.UpdateClass)
 		})
 	})
 

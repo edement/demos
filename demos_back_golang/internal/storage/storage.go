@@ -19,6 +19,9 @@ type UserRepository interface {
 type ClassRepository interface {
 	CreateClass(ctx context.Context, request models.CreateClassRequest) error
 	GetClassById(ctx context.Context, classId int64) (models.ClassResponse, error)
+	//GetAllClasses(ctx context.Context) (models.ClassResponse[], error)
+	DeleteClass(ctx context.Context, classId int64) error
+	UpdateClass(ctx context.Context, classId int64, class models.UpdateClassRequest) (models.ClassResponse, error)
 }
 
 type Storage struct {
