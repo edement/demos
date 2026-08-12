@@ -9,9 +9,10 @@ type Config struct {
 }
 
 type AppConfig struct {
-	Name    string `mapstructure:"name"`
-	Version string `mapstructure:"version"`
-	Env     string `mapstructure:"env"` // local, dev, prod
+	Name      string `mapstructure:"name"`
+	Version   string `mapstructure:"version"`
+	Env       string `mapstructure:"env"` // local, dev, prod
+	JWTSecret string `mapstructure:"jwt_secret"`
 }
 
 type ServerConfig struct {

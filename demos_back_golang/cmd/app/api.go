@@ -40,6 +40,8 @@ func (app *application) mount() http.Handler {
 		r.Route("/users", func(r chi.Router) {
 			r.Post("/register", app.userHandler.Register)
 			r.Post("/login", app.userHandler.Login)
+			r.Post("/refresh", app.userHandler.Refresh)
+			r.Get("/me", app.userHandler.Me)
 		})
 
 		r.Route("/classes", func(r chi.Router) {
