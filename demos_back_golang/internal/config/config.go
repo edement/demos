@@ -1,6 +1,9 @@
 package config
 
-import "fmt"
+import (
+	"fmt"
+	"time"
+)
 
 type Config struct {
 	App      AppConfig      `mapstructure:"app"`
@@ -9,10 +12,16 @@ type Config struct {
 }
 
 type AppConfig struct {
-	Name      string `mapstructure:"name"`
-	Version   string `mapstructure:"version"`
-	Env       string `mapstructure:"env"` // local, dev, prod
-	JWTSecret string `mapstructure:"jwt_secret"`
+	Name       string     `mapstructure:"name"`
+	Version    string     `mapstructure:"version"`
+	Env        string     `mapstructure:"env"` // local, dev, prod
+	JWTService JwtService `mapstructure:"jwt"`
+}
+
+type JwtService struct {
+	JwtSecret  string        `mapstructure:"jwt_secret"`
+	AccessTTL  time.Duration `mapstructure:"access_ttl"`
+	RefreshTTL time.Duration `mapstructure:"refresh_ttl"`
 }
 
 type ServerConfig struct {

@@ -8,6 +8,20 @@ import (
 	"github.com/google/uuid"
 )
 
+type JwtService struct {
+	secret     []byte
+	accessTTL  time.Duration
+	refreshTTL time.Duration
+}
+
+func NewJwtService(secret string, accessTTL time.Duration, refreshTTL time.Duration) *JwtService {
+	return &JwtService{
+		secret:     []byte(secret),
+		accessTTL:  accessTTL,
+		refreshTTL: refreshTTL,
+	}
+}
+
 type AccessTokenClaims struct {
 	UserID   int64  `json:"user_id"`
 	Username string `json:"username"`
@@ -21,43 +35,43 @@ type RefreshTokenClaims struct {
 	jwt.RegisteredClaims
 }
 
-func GenerateAccessToken(userID int64, username, email, secret string) (string, error) {
+func (js *JwtService) GenerateAccessToken(userID int64, username, email string) (string, error) {
 	claims := AccessTokenClaims{
 		UserID:   userID,
 		Username: username,
 		Email:    email,
 		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(15 * time.Minute)),
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(js.accessTTL)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
 			Issuer:    "demos",
 		},
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString([]byte(secret))
+	return token.SignedString(js.secret)
 }
 
-func GenerateRefreshToken(userID int64, familyID uuid.UUID, secret string) (string, error) {
+func (js *JwtService) GenerateRefreshToken(userID int64, familyID uuid.UUID) (string, error) {
 	claims := RefreshTokenClaims{
 		UserID:   userID,
 		FamilyID: familyID,
 		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(7 * 24 * time.Hour)),
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(js.refreshTTL)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
 			Issuer:    "demos",
 		},
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString([]byte(secret))
+	return token.SignedString(js.secret)
 }
 
-func ValidateAccessToken(tokenString, secret string) (*AccessTokenClaims, error) {
+func (js *JwtService) ValidateAccessToken(tokenString string) (*AccessTokenClaims, error) {
 	token, err := jwt.ParseWithClaims(tokenString, &AccessTokenClaims{}, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, errors.New("invalid signing method")
 		}
-		return []byte(secret), nil
+		return js.secret, nil
 	})
 
 	if err != nil {
@@ -71,12 +85,12 @@ func ValidateAccessToken(tokenString, secret string) (*AccessTokenClaims, error)
 	return nil, errors.New("invalid token")
 }
 
-func ValidateRefreshToken(tokenString, secret string) (*RefreshTokenClaims, error) {
+func (js *JwtService) ValidateRefreshToken(tokenString string) (*RefreshTokenClaims, error) {
 	token, err := jwt.ParseWithClaims(tokenString, &RefreshTokenClaims{}, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, errors.New("invalid signing method")
 		}
-		return []byte(secret), nil
+		return js.secret, nil
 	})
 
 	if err != nil {

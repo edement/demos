@@ -14,11 +14,12 @@ import (
 )
 
 type application struct {
-	logger       *slog.Logger
-	config       *config.Config
-	storage      *storage.Storage
-	userHandler  *handlers.UserHandler
-	classHandler *handlers.ClassHandler
+	logger         *slog.Logger
+	config         *config.Config
+	storage        *storage.Storage
+	userHandler    *handlers.UserHandler
+	classHandler   *handlers.ClassHandler
+	authMiddleware func(http.Handler) http.Handler
 }
 
 func (app *application) mount() http.Handler {
@@ -41,14 +42,22 @@ func (app *application) mount() http.Handler {
 			r.Post("/register", app.userHandler.Register)
 			r.Post("/login", app.userHandler.Login)
 			r.Post("/refresh", app.userHandler.Refresh)
-			r.Get("/me", app.userHandler.Me)
+
+			r.Group(func(r chi.Router) {
+				r.Use(app.authMiddleware)
+				r.Get("/me", app.userHandler.Me)
+			})
 		})
 
 		r.Route("/classes", func(r chi.Router) {
-			r.Post("/create", app.classHandler.CreateClass)
 			r.Get("/{classId}", app.classHandler.GetClassById)
-			r.Delete("/{classId}", app.classHandler.DeleteClass)
-			r.Patch("/{classId}", app.classHandler.UpdateClass)
+
+			r.Group(func(r chi.Router) {
+				r.Use(app.authMiddleware)
+				r.Post("/create", app.classHandler.CreateClass)
+				r.Delete("/{classId}", app.classHandler.DeleteClass)
+				r.Patch("/{classId}", app.classHandler.UpdateClass)
+			})
 		})
 	})
 

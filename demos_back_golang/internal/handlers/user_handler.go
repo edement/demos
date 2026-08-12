@@ -19,20 +19,20 @@ type UserHandler struct {
 	storage           storage.UserRepository
 	logger            *slog.Logger
 	refreshTokenStore *storage.RefreshTokenStorage
-	jwtSecret         string
+	jwtService        *jwt.JwtService
 }
 
 func NewUserHandler(
 	storage storage.UserRepository,
 	refreshTokenStore *storage.RefreshTokenStorage,
 	logger *slog.Logger,
-	jwtSecret string,
+	jwtServ *jwt.JwtService,
 ) *UserHandler {
 	return &UserHandler{
 		storage:           storage,
 		refreshTokenStore: refreshTokenStore,
 		logger:            logger,
-		jwtSecret:         jwtSecret,
+		jwtService:        jwtServ,
 	}
 }
 
@@ -154,7 +154,7 @@ func (h *UserHandler) Refresh(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	claims, err := jwt.ValidateRefreshToken(req.RefreshToken, h.jwtSecret)
+	claims, err := h.jwtService.ValidateRefreshToken(req.RefreshToken)
 	if err != nil {
 		h.logger.Error("Invalid refresh token", sl.Err(err))
 		http.Error(w, "Invalid refresh token", http.StatusUnauthorized)
@@ -191,14 +191,14 @@ func (h *UserHandler) Refresh(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	newAccessToken, err := jwt.GenerateAccessToken(user.ID, user.Username, user.Email, h.jwtSecret)
+	newAccessToken, err := h.jwtService.GenerateAccessToken(user.ID, user.Username, user.Email)
 	if err != nil {
 		h.logger.Error("Failed to generate new access token", sl.Err(err))
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
 
-	newRefreshToken, err := jwt.GenerateRefreshToken(user.ID, familyID, h.jwtSecret)
+	newRefreshToken, err := h.jwtService.GenerateRefreshToken(user.ID, familyID)
 	if err != nil {
 		h.logger.Error("Failed to generate new refresh token", sl.Err(err))
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
@@ -238,7 +238,7 @@ func (h *UserHandler) Logout(w http.ResponseWriter, r *http.Request) {
 	}
 	tokenString := authHeader[len(prefix):]
 
-	claims, err := jwt.ValidateAccessToken(tokenString, h.jwtSecret)
+	claims, err := h.jwtService.ValidateAccessToken(tokenString)
 	if err != nil {
 		http.Error(w, "Invalid token", http.StatusUnauthorized)
 		return
@@ -264,12 +264,12 @@ func (h *UserHandler) generateTokens(
 ) (string, string, error) {
 	familyID := uuid.New()
 
-	accessToken, err := jwt.GenerateAccessToken(userID, username, email, h.jwtSecret)
+	accessToken, err := h.jwtService.GenerateAccessToken(userID, username, email)
 	if err != nil {
 		return "", "", err
 	}
 
-	refreshToken, err := jwt.GenerateRefreshToken(userID, familyID, h.jwtSecret)
+	refreshToken, err := h.jwtService.GenerateRefreshToken(userID, familyID)
 	if err != nil {
 		return "", "", err
 	}
@@ -296,7 +296,7 @@ func (h *UserHandler) Me(w http.ResponseWriter, r *http.Request) {
 	}
 	tokenString := authHeader[len(prefix):]
 
-	claims, err := jwt.ValidateAccessToken(tokenString, h.jwtSecret)
+	claims, err := h.jwtService.ValidateAccessToken(tokenString)
 	if err != nil {
 		h.logger.Error("Invalid token", sl.Err(err))
 		http.Error(w, "Invalid or expired token", http.StatusUnauthorized)

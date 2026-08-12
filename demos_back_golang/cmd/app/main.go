@@ -8,8 +8,10 @@ import (
 
 	"demos_back_golang/internal/config"
 	"demos_back_golang/internal/handlers"
+	"demos_back_golang/internal/lib/jwt"
 	"demos_back_golang/internal/lib/slogpretty/handlers/slogpretty"
 	"demos_back_golang/internal/lib/slogpretty/sl"
+	"demos_back_golang/internal/middleware"
 	"demos_back_golang/internal/storage"
 )
 
@@ -45,22 +47,32 @@ func main() {
 
 	store := storage.NewStorage(db)
 
+	// JWT Service
+	jwtService := jwt.NewJwtService(
+		cfg.App.JWTService.JwtSecret,
+		cfg.App.JWTService.AccessTTL,
+		cfg.App.JWTService.RefreshTTL,
+	)
+	authMiddleware := middleware.NewAuthMiddleware(jwtService)
+
 	// Dependencies
+
 	userHandler := handlers.NewUserHandler(
 		store.Users,
 		store.RefreshTokens,
 		logger,
-		cfg.App.JWTSecret,
+		jwtService,
 	)
 	classHandler := handlers.NewClassHandler(store.Classes, logger)
 
 	// App
 	app := &application{
-		logger:       logger,
-		config:       cfg,
-		storage:      store,
-		userHandler:  userHandler,
-		classHandler: classHandler,
+		logger:         logger,
+		config:         cfg,
+		storage:        store,
+		userHandler:    userHandler,
+		classHandler:   classHandler,
+		authMiddleware: authMiddleware,
 	}
 
 	mux := app.mount()
