@@ -1,6 +1,7 @@
 app:
   name: "demos"
   env: "local" # local, dev, prod
+  jwt_secret: "super-krutoy-secret-key-makar228-please-be-happy"
 storage_path: "postgres://postgres:postgres@localhost/demos?sslmode=disable" # `driver://username:password@addres/database`
 server:
   host: "localhost"

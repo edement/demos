@@ -46,7 +46,12 @@ func main() {
 	store := storage.NewStorage(db)
 
 	// Dependencies
-	userHandler := handlers.NewUserHandler(store.Users, logger)
+	userHandler := handlers.NewUserHandler(
+		store.Users,
+		store.RefreshTokens,
+		logger,
+		cfg.App.JWTSecret,
+	)
 	classHandler := handlers.NewClassHandler(store.Classes, logger)
 
 	// App

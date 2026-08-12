@@ -60,3 +60,25 @@ func (s *UserStorage) GetUser(ctx context.Context, email string) (models.User, e
 	// TODO: Проверка ошибки Системная или Пользователь не найден
 	return user, err
 }
+
+func (s *UserStorage) GetUserByID(ctx context.Context, id int64) (models.User, error) {
+	query := `
+        SELECT id, username, email, password_hash, is_trainer
+        FROM users
+        WHERE id = $1
+    `
+	user := models.User{}
+
+	err := s.db.QueryRowContext(ctx, query, id).Scan(
+		&user.ID,
+		&user.Username,
+		&user.Email,
+		&user.Password,
+		&user.IsTrainer,
+	)
+	if err != nil {
+		return user, err
+	}
+
+	return user, nil
+}

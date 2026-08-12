@@ -13,6 +13,7 @@ import (
 type UserRepository interface {
 	CreateUser(ctx context.Context, request models.RegisterRequest) (models.UserResponse, error)
 	GetUser(ctx context.Context, email string) (models.User, error)
+	GetUserByID(ctx context.Context, id int64) (models.User, error)
 }
 
 type ClassRepository interface {
@@ -21,14 +22,16 @@ type ClassRepository interface {
 }
 
 type Storage struct {
-	Users   UserRepository
-	Classes ClassRepository
+	Users         UserRepository
+	Classes       ClassRepository
+	RefreshTokens *RefreshTokenStorage
 }
 
 func NewStorage(db *sql.DB) *Storage {
 	return &Storage{
-		Classes: NewClassStorage(db),
-		Users:   NewUserStorage(db),
+		Classes:       NewClassStorage(db),
+		Users:         NewUserStorage(db),
+		RefreshTokens: NewRefreshTokenStorage(db),
 	}
 }
 
