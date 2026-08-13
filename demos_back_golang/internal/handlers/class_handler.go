@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"demos_back_golang/internal/lib/slogpretty/sl"
+	"demos_back_golang/internal/middleware"
 	"demos_back_golang/internal/models"
 	"demos_back_golang/internal/storage"
 	"encoding/json"
@@ -27,7 +28,6 @@ func NewClassHandler(storage storage.ClassRepository, logger *slog.Logger) *Clas
 }
 
 func (h *ClassHandler) CreateClass(w http.ResponseWriter, r *http.Request) {
-	// Structure Validation
 	classReq := models.CreateClassRequest{}
 	if err := json.NewDecoder(r.Body).Decode(&classReq); err != nil {
 		h.logger.Error("Failed to decode request", sl.Err(err))
@@ -35,16 +35,21 @@ func (h *ClassHandler) CreateClass(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Use repository
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second) // Learn about context (for what, why, etc...)
+	claims, ok := r.Context().Value(middleware.UserClaimsKey).(models.UserClaims)
+	if !ok {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
 	defer cancel()
 
-	if err := h.storage.CreateClass(ctx, classReq); err != nil {
+	if err := h.service.CreateClass(ctx, classReq, claims.UserID); err != nil {
 		h.logger.Error("Failed to create class", sl.Err(err))
 		http.Error(w, "Failed to create class", http.StatusInternalServerError)
 		return
 	}
-	// Response
+
 	w.WriteHeader(http.StatusCreated)
 }
 
@@ -58,24 +63,24 @@ func (h *ClassHandler) GetClassById(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Use repository
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second) // Learn about context (for what, why, etc...)
+	ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second) // Learn about context (for what, why, etc...)
 	defer cancel()
 
 	// TODO: Проверка ошибки Системная или Класс не найден
-	class, err := h.storage.GetClassById(ctx, classID)
+	class, err := h.service.GetClassById(ctx, classID)
 	if err != nil {
 		h.logger.Error("Failed to get class", sl.Err(err))
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
 
-	// Response
 	response, err := json.Marshal(class)
 	if err != nil {
-		h.logger.Error("Failed to decode response", sl.Err(err))
+		h.logger.Error("Failed to encode response", sl.Err(err))
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
+
 	w.Header().Set("content-type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	w.Write(response)
@@ -91,26 +96,23 @@ func (h *ClassHandler) DeleteClass(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Use repository
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second) // Learn about context (for what, why, etc...)
+	ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second) // Learn about context (for what, why, etc...)
 	defer cancel()
 
 	// TODO: Проверка ошибки Системная или Класс не найден
-	err = h.storage.DeleteClass(ctx, classId)
-	if err != nil {
-		h.logger.Error("Failed to delete class")
+	if err := h.service.DeleteClass(ctx, classId); err != nil {
+		h.logger.Error("Failed to delete class", sl.Err(err))
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
 
-	// Response
 	w.WriteHeader(http.StatusNoContent)
 }
 
 func (h *ClassHandler) UpdateClass(w http.ResponseWriter, r *http.Request) {
-	// Structure validation
 	classUpdate := models.UpdateClassRequest{}
 	if err := json.NewDecoder(r.Body).Decode(&classUpdate); err != nil {
-		h.logger.Error("Failed to decode request")
+		h.logger.Error("Failed to decode request", sl.Err(err))
 		http.Error(w, "Failed to update class", http.StatusBadRequest)
 		return
 	}
@@ -122,25 +124,24 @@ func (h *ClassHandler) UpdateClass(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Use repository
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second) // Learn about context (for what, why, etc...)
+	ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
 	defer cancel()
 
 	// TODO: Проверка ошибки Системная или Класс не найден
-	class, err := h.storage.UpdateClass(ctx, classId, classUpdate)
+	class, err := h.service.UpdateClass(ctx, classId, classUpdate)
 	if err != nil {
 		h.logger.Error("Failed to update class", sl.Err(err))
 		http.Error(w, "Failed to update class", http.StatusInternalServerError)
 		return
 	}
 
-	// Response
 	response, err := json.Marshal(class)
 	if err != nil {
-		h.logger.Error("Failed to decode response", sl.Err(err))
+		h.logger.Error("Failed to encode response", sl.Err(err))
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
+
 	w.Header().Set("content-type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	w.Write(response)

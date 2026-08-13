@@ -1,6 +1,7 @@
 package main
 
 import (
+	"demos_back_golang/internal/services"
 	"flag"
 	"log"
 	"log/slog"
@@ -28,7 +29,7 @@ func main() {
 
 	cfg, err := config.Load(*configPath)
 	if err != nil {
-		log.Fatal("Error while loading config: ", err) // Посмотреть реализацию функции MustLoad config в видео, как там логируется инфа
+		log.Fatal("Error while loading config: ", err)
 	}
 
 	// Logger
@@ -57,13 +58,13 @@ func main() {
 
 	// Dependencies
 
-	userHandler := handlers.NewUserHandler(
-		store.Users,
-		store.RefreshTokens,
-		logger,
-		jwtService,
-	)
-	classHandler := handlers.NewClassHandler(store.Classes, logger)
+	// Services
+	userService := services.NewUserService(store.Users, store.RefreshTokens, jwtService)
+	classService := services.NewClassService(store.Classes)
+
+	// Handlers
+	userHandler := handlers.NewUserHandler(userService, logger)
+	classHandler := handlers.NewClassHandler(classService, logger)
 
 	// App
 	app := &application{

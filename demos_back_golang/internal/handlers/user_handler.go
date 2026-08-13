@@ -2,38 +2,26 @@ package handlers
 
 import (
 	"context"
-	"demos_back_golang/internal/lib/jwt"
-	"demos_back_golang/internal/lib/slogpretty/sl"
-	"demos_back_golang/internal/middleware"
-	"demos_back_golang/internal/models"
-	"demos_back_golang/internal/storage"
 	"encoding/json"
 	"log/slog"
 	"net/http"
 	"time"
 
-	"github.com/google/uuid"
-	"golang.org/x/crypto/bcrypt"
+	"demos_back_golang/internal/lib/slogpretty/sl"
+	"demos_back_golang/internal/middleware"
+	"demos_back_golang/internal/models"
+	"demos_back_golang/internal/services"
 )
 
 type UserHandler struct {
-	storage           storage.UserRepository
-	logger            *slog.Logger
-	refreshTokenStore *storage.RefreshTokenStorage
-	jwtService        *jwt.JwtService
+	service services.UserService
+	logger  *slog.Logger
 }
 
-func NewUserHandler(
-	storage storage.UserRepository,
-	refreshTokenStore *storage.RefreshTokenStorage,
-	logger *slog.Logger,
-	jwtServ *jwt.JwtService,
-) *UserHandler {
+func NewUserHandler(service services.UserService, logger *slog.Logger) *UserHandler {
 	return &UserHandler{
-		storage:           storage,
-		refreshTokenStore: refreshTokenStore,
-		logger:            logger,
-		jwtService:        jwtServ,
+		service: service,
+		logger:  logger,
 	}
 }
 
@@ -45,40 +33,20 @@ func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(regReq.Password), bcrypt.DefaultCost)
-	if err != nil {
-		h.logger.Error("Failed to hash password", sl.Err(err))
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
-		return
-	}
-	regReq.Password = string(hashedPassword)
-
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
 	defer cancel()
 
-	user, err := h.storage.CreateUser(ctx, regReq)
+	user, accessToken, refreshToken, err := h.service.Register(ctx, regReq)
 	if err != nil {
-		h.logger.Error("Failed to create user:", sl.Err(err))
+		h.logger.Error("Failed to register user", sl.Err(err))
 		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	accessToken, refreshToken, err := h.generateTokens(ctx, user.ID, user.Username, user.Email)
-	if err != nil {
-		h.logger.Error("Failed to generate tokens", sl.Err(err))
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
 
 	response := map[string]interface{}{
 		"access_token":  accessToken,
 		"refresh_token": refreshToken,
-		"user": models.UserResponse{
-			ID:        user.ID,
-			Username:  user.Username,
-			Email:     user.Email,
-			IsTrainer: user.IsTrainer,
-		},
+		"user":          *user,
 	}
 
 	w.Header().Set("Content-type", "application/json")
@@ -89,45 +57,27 @@ func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
-	loginReq := &models.LoginRequest{}
-	if err := json.NewDecoder(r.Body).Decode(loginReq); err != nil {
+	loginReq := models.LoginRequest{}
+	if err := json.NewDecoder(r.Body).Decode(&loginReq); err != nil {
 		h.logger.Error("Failed to decode user", sl.Err(err))
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
 	defer cancel()
 
-	user, err := h.storage.GetUser(ctx, loginReq.Email)
+	user, accessToken, refreshToken, err := h.service.Login(ctx, loginReq)
 	if err != nil {
-		h.logger.Error("Failed to Get user", sl.Err(err))
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(loginReq.Password)); err != nil {
-		h.logger.Error("Auth error", sl.Err(err))
-		http.Error(w, "Invalid email or password", http.StatusUnauthorized)
-		return
-	}
-
-	accessToken, refreshToken, err := h.generateTokens(ctx, user.ID, user.Username, user.Email)
-	if err != nil {
-		h.logger.Error("Failed to generate tokens", sl.Err(err))
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		h.logger.Error("Failed to login", sl.Err(err))
+		http.Error(w, err.Error(), http.StatusUnauthorized)
 		return
 	}
 
 	response := map[string]interface{}{
 		"access_token":  accessToken,
 		"refresh_token": refreshToken,
-		"user": models.UserResponse{
-			ID:        user.ID,
-			Username:  user.Username,
-			Email:     user.Email,
-			IsTrainer: user.IsTrainer,
-		},
+		"user":          *user,
 	}
 
 	w.Header().Set("Content-type", "application/json")
@@ -152,64 +102,13 @@ func (h *UserHandler) Refresh(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
 	defer cancel()
 
-	claims, err := h.jwtService.ValidateRefreshToken(req.RefreshToken)
+	newAccessToken, newRefreshToken, err := h.service.Refresh(ctx, req.RefreshToken)
 	if err != nil {
-		h.logger.Error("Invalid refresh token", sl.Err(err))
-		http.Error(w, "Invalid refresh token", http.StatusUnauthorized)
-		return
-	}
-
-	userID, familyID, err := h.refreshTokenStore.GetUserIDByToken(ctx, req.RefreshToken)
-	if err != nil {
-		h.logger.Error("Failed to check refresh token in DB", sl.Err(err))
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
-		return
-	}
-	if userID == 0 {
-		http.Error(w, "Invalid refresh token", http.StatusUnauthorized)
-		return
-	}
-
-	if userID != claims.UserID {
-		h.logger.Error("Refresh token user_id mismatch")
-		http.Error(w, "Invalid refresh token", http.StatusUnauthorized)
-		return
-	}
-
-	if err := h.refreshTokenStore.MarkTokenAsUsed(ctx, req.RefreshToken); err != nil {
-		h.logger.Error("Failed to mark refresh token as used", sl.Err(err))
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
-		return
-	}
-
-	user, err := h.storage.GetUserByID(ctx, userID)
-	if err != nil {
-		h.logger.Error("Failed to get user", sl.Err(err))
-		http.Error(w, "User not found", http.StatusInternalServerError)
-		return
-	}
-
-	newAccessToken, err := h.jwtService.GenerateAccessToken(user.ID, user.Username, user.Email)
-	if err != nil {
-		h.logger.Error("Failed to generate new access token", sl.Err(err))
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
-		return
-	}
-
-	newRefreshToken, err := h.jwtService.GenerateRefreshToken(user.ID, familyID)
-	if err != nil {
-		h.logger.Error("Failed to generate new refresh token", sl.Err(err))
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
-		return
-	}
-
-	expiresAt := time.Now().Add(7 * 24 * time.Hour)
-	if err := h.refreshTokenStore.Save(ctx, user.ID, newRefreshToken, expiresAt, familyID); err != nil {
-		h.logger.Error("Failed to save new refresh token", sl.Err(err))
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		h.logger.Error("Failed to refresh token", sl.Err(err))
+		http.Error(w, err.Error(), http.StatusUnauthorized)
 		return
 	}
 
@@ -226,14 +125,16 @@ func (h *UserHandler) Refresh(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *UserHandler) Logout(w http.ResponseWriter, r *http.Request) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	claims, ok := r.Context().Value(middleware.UserClaimsKey).(models.UserClaims)
+	if !ok {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
 	defer cancel()
 
-	// Работа с контекстом запроса после прохода auth middleware
-	val := r.Context().Value(middleware.UserClaimsKey)
-	claims := h.jwtService.GetClaimsFromJWT(val)
-
-	if err := h.refreshTokenStore.RevokeAllUserTokens(ctx, claims.UserID); err != nil {
+	if err := h.service.Logout(ctx, claims.UserID); err != nil {
 		h.logger.Error("Failed to revoke tokens", sl.Err(err))
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
@@ -243,56 +144,25 @@ func (h *UserHandler) Logout(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *UserHandler) Me(w http.ResponseWriter, r *http.Request) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	claims, ok := r.Context().Value(middleware.UserClaimsKey).(models.UserClaims)
+	if !ok {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
 	defer cancel()
 
-	// Работа с контекстом запроса после прохода auth middleware
-	val := r.Context().Value(middleware.UserClaimsKey)
-	claims := h.jwtService.GetClaimsFromJWT(val)
-
-	user, err := h.storage.GetUserByID(ctx, claims.UserID)
+	user, err := h.service.Me(ctx, claims.UserID)
 	if err != nil {
 		h.logger.Error("Failed to get user", sl.Err(err))
 		http.Error(w, "User not found", http.StatusInternalServerError)
 		return
 	}
 
-	response := models.UserResponse{
-		ID:        user.ID,
-		Username:  user.Username,
-		Email:     user.Email,
-		IsTrainer: user.IsTrainer,
-	}
-
 	w.Header().Set("Content-type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	if err := json.NewEncoder(w).Encode(response); err != nil {
+	if err := json.NewEncoder(w).Encode(user); err != nil {
 		h.logger.Error("Error while encoding response", sl.Err(err))
 	}
-}
-
-func (h *UserHandler) generateTokens(
-	ctx context.Context,
-	userID int64,
-	username string,
-	email string,
-) (string, string, error) {
-	familyID := uuid.New()
-
-	accessToken, err := h.jwtService.GenerateAccessToken(userID, username, email)
-	if err != nil {
-		return "", "", err
-	}
-
-	refreshToken, err := h.jwtService.GenerateRefreshToken(userID, familyID)
-	if err != nil {
-		return "", "", err
-	}
-
-	expiresAt := time.Now().Add(7 * 24 * time.Hour)
-	if err := h.refreshTokenStore.Save(ctx, userID, refreshToken, expiresAt, familyID); err != nil {
-		return "", "", err
-	}
-
-	return accessToken, refreshToken, nil
 }
