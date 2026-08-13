@@ -65,14 +65,14 @@ const ClassCard = ({ danceClass, onEnroll, isEnrolled = false }: ClassCardProps)
             Танцевальное занятие
           </h3>
           <span className="text-sm text-demokrat-purple font-medium px-2 py-1 bg-demokrat-purple/10 rounded-sm">
-            {danceClass.date}
+            {danceClass.datetime}
           </span>
         </div>
         
         <div className="space-y-3 flex-grow">
           <div className="flex items-center text-white/70">
             <Clock className="h-4 w-4 mr-2 text-demokrat-purple" />
-            <span>{danceClass.time}</span>
+            <span>{danceClass.datetime}</span>
           </div>
           
           <div className="flex items-center text-white/70">
@@ -87,7 +87,7 @@ const ClassCard = ({ danceClass, onEnroll, isEnrolled = false }: ClassCardProps)
           
           <div className="flex items-center text-white/70">
             <User className="h-4 w-4 mr-2 text-demokrat-purple" />
-            <span>{danceClass.trainer.name}</span>
+            <span>{danceClass.trainer.username}</span>
           </div>
         </div>
         

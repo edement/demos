@@ -44,13 +44,25 @@ func (h *ClassHandler) CreateClass(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
 	defer cancel()
 
-	if err := h.service.CreateClass(ctx, classReq, claims.UserID); err != nil {
+	class, err := h.service.CreateClass(ctx, classReq, claims.UserID)
+	if err != nil {
 		h.logger.Error("Failed to create class", sl.Err(err))
 		http.Error(w, "Failed to create class", http.StatusInternalServerError)
 		return
 	}
 
+	response, err := json.Marshal(class)
+	if err != nil {
+		h.logger.Error("Failed to encode response", sl.Err(err))
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-type", "application/json")
 	w.WriteHeader(http.StatusCreated)
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		h.logger.Error("Error while encoding response", sl.Err(err))
+	}
 }
 
 func (h *ClassHandler) GetClassById(w http.ResponseWriter, r *http.Request) {
@@ -75,6 +87,29 @@ func (h *ClassHandler) GetClassById(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response, err := json.Marshal(class)
+	if err != nil {
+		h.logger.Error("Failed to encode response", sl.Err(err))
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("content-type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write(response)
+}
+
+func (h *ClassHandler) GetClasses(w http.ResponseWriter, r *http.Request) {
+	ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second) // Learn about context (for what, why, etc...)
+	defer cancel()
+
+	classes, err := h.service.GetClasses(ctx)
+	if err != nil {
+		h.logger.Error("Failed to get classes", sl.Err(err))
+		http.Error(w, "Failed to get classes", http.StatusInternalServerError)
+		return
+	}
+
+	response, err := json.Marshal(classes)
 	if err != nil {
 		h.logger.Error("Failed to encode response", sl.Err(err))
 		http.Error(w, "Internal server error", http.StatusInternalServerError)

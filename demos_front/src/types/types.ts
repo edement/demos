@@ -1,6 +1,6 @@
 export interface User {
   id: string;
-  name: string;
+  username: string;
   email: string;
   isTrainer: boolean;
 }
@@ -12,7 +12,7 @@ export interface Class {
   price: number;
   trainer: {
     id: string;
-    name: string;
+    username: string;
   };
   enrolledStudents?: string[];
 }

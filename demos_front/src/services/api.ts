@@ -1,7 +1,7 @@
 import { Class, User, Tokens } from '@/types/types';
 import { mockTrainer, mockUser, mockTokens, mockClasses, mockEnrollments } from '@/mocks/mocks';
 
-const API_BASE_URL = 'http://localhost:5088';
+const API_BASE_URL = 'http://localhost:8081';
 const useMock = import.meta.env.VITE_USE_MOCK === 'true';
 
 // Функция для получения токена из localStorage
@@ -69,7 +69,7 @@ export const authService = {
         });
       }
 
-      return apiRequest<{ user: User; tokens: Tokens }>('/api/auth/registration', 'POST', {
+      return apiRequest<{ user: User; tokens: Tokens }>('/v1/users/register', 'POST', {
         email, password, name, isTrainer
       });
     },
@@ -83,7 +83,7 @@ export const authService = {
         });
       }
 
-      return apiRequest<{ user: User; tokens: Tokens }>('/api/auth/login', 'POST', {
+      return apiRequest<{ user: User; tokens: Tokens }>('/v1/users/login', 'POST', {
         email,
         password
       });
@@ -97,12 +97,12 @@ export const authService = {
         message: "Unauthorized"
       });
     }
-    apiRequest<User>('/api/users/me');
+    apiRequest<User>('/v1/users/me');
   },
 
   // Обновление токенов
   refreshTokens: () => 
-    apiRequest<Tokens>('/api/auth/refresh'),
+    apiRequest<Tokens>('/v1/users/refresh'),
 };
 
 // Сервисы для работы с занятиями
@@ -112,24 +112,24 @@ export const classesService = {
     if (useMock) {
       return Promise.resolve(mockClasses);
     }
-    apiRequest<Class[]>('/api/classes');
+    return apiRequest<Class[]>('/v1/classes');
   },
   
   // Получение занятия по ID
   getClassById: (id: string) => 
-    apiRequest<Class>(`/api/classes/${id}`),
+    apiRequest<Class>(`/v1/classes/${id}`),
   
   // Создание нового занятия
   createClass: (classData: Omit<Class, 'id' | 'trainer' | 'enrolledStudents'>) => 
-    apiRequest<null>('/api/classes', 'POST', classData),
+    apiRequest<Class>('/v1/classes/create', 'POST', classData),
   
   // Обновление занятия
   updateClass: (id: string, classData: Partial<Class>) => 
-    apiRequest<Class>(`/api/classes/${id}`, 'PUT', classData),
+    apiRequest<Class>(`/v1/classes/${id}`, 'PUT', classData),
   
   // Удаление занятия
   deleteClass: (id: string) => 
-    apiRequest<null>(`/api/classes/${id}`, 'DELETE'),
+    apiRequest<null>(`/v1/classes/${id}`, 'DELETE'),
 
   // Получение занятий тренера
     getTrainerClasses: () => {

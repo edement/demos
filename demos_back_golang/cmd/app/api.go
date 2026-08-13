@@ -11,6 +11,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/rs/cors"
 )
 
 type application struct {
@@ -25,6 +26,13 @@ type application struct {
 func (app *application) mount() http.Handler {
 	r := chi.NewRouter()
 
+	r.Use(cors.New(cors.Options{
+		AllowedOrigins:   []string{"http://localhost:8080"},
+		AllowedMethods:   []string{"GET", "POST", "OPTIONS"},
+		AllowedHeaders:   []string{"Authorization", "Content-Type"},
+		AllowCredentials: true,
+		MaxAge:           86400,
+	}).Handler)
 	r.Use(middleware.RequestID)
 	r.Use(middleware.RealIP)
 	r.Use(middleware.Logger)
@@ -51,6 +59,7 @@ func (app *application) mount() http.Handler {
 
 		r.Route("/classes", func(r chi.Router) {
 			r.Get("/{classId}", app.classHandler.GetClassById)
+			r.Get("/", app.classHandler.GetClasses)
 
 			r.Group(func(r chi.Router) {
 				r.Use(app.authMiddleware)

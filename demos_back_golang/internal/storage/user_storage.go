@@ -17,7 +17,8 @@ func NewUserStorage(db *sql.DB) *UserStorage {
 func (s *UserStorage) CreateUser(ctx context.Context, request models.RegisterRequest) (models.UserResponse, error) {
 	query := `
 		INSERT INTO users (username, password_hash, email)
-		VALUES ($1, $2, $3) RETURNING id
+		VALUES ($1, $2, $3) 
+		RETURNING id
 	`
 	user := models.UserResponse{
 		Username:  request.Username,

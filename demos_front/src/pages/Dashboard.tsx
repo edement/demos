@@ -97,7 +97,7 @@ const Dashboard = () => {
               <UserCircle className="w-10 h-10 text-demokrat-purple" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-white">{user.name}</h1>
+              <h1 className="text-2xl font-bold text-white">{user.username}</h1>
               <p className="text-white/70">
                 {isTrainer ? 'Тренер' : 'Ученик'} • {user.email}
               </p>

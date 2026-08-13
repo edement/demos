@@ -43,10 +43,13 @@ func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	tokens := Tokens{
+		AccessToken:  accessToken,
+		RefreshToken: refreshToken,
+	}
 	response := map[string]interface{}{
-		"access_token":  accessToken,
-		"refresh_token": refreshToken,
-		"user":          *user,
+		"user":   *user,
+		"tokens": tokens,
 	}
 
 	w.Header().Set("Content-type", "application/json")
@@ -74,10 +77,13 @@ func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	tokens := Tokens{
+		AccessToken:  accessToken,
+		RefreshToken: refreshToken,
+	}
 	response := map[string]interface{}{
-		"access_token":  accessToken,
-		"refresh_token": refreshToken,
-		"user":          *user,
+		"user":   *user,
+		"tokens": tokens,
 	}
 
 	w.Header().Set("Content-type", "application/json")
@@ -165,4 +171,9 @@ func (h *UserHandler) Me(w http.ResponseWriter, r *http.Request) {
 	if err := json.NewEncoder(w).Encode(user); err != nil {
 		h.logger.Error("Error while encoding response", sl.Err(err))
 	}
+}
+
+type Tokens struct {
+	AccessToken  string `json:"accessToken"`
+	RefreshToken string `json:"refreshToken"`
 }

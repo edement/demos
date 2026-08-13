@@ -28,7 +28,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const { toast } = useToast();
 
   useEffect(() => {
-    const storedToken = localStorage.getItem('demokratAccessToken');
+    const storedToken = localStorage.getItem('accessToken');
     
     if (storedToken) {
       fetchCurrentUser();
@@ -53,12 +53,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const { user: userData, tokens } = await authService.login(email, password);
       setUser(userData);
-      localStorage.setItem('demokratAccessToken', tokens.accessToken);
-      localStorage.setItem('demokratRefreshToken', tokens.refreshToken);
-      localStorage.setItem('demokratUser', JSON.stringify(userData));
+      localStorage.setItem('accessToken', tokens.accessToken);
+      localStorage.setItem('refreshToken', tokens.refreshToken);
+      localStorage.setItem('user', JSON.stringify(userData));
       toast({
         title: "Вход выполнен",
-        description: `С возвращением, ${userData.name}!`,
+        description: `С возвращением, ${userData.username}!`,
       });
     } catch (error) {
       console.error('Login failed:', error);

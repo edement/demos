@@ -29,9 +29,10 @@ type Trainer struct {
 }
 
 type ClassResponse struct {
-	ID       int64   `json:"id"`
-	DateTime string  `json:"datetime"`
-	Location string  `json:"location"`
-	Price    int64   `json:"price"`
-	Trainer  Trainer `json:"trainer"`
+	ID                int64    `json:"id"`
+	DateTime          string   `json:"datetime"`
+	Location          string   `json:"location"`
+	Price             int64    `json:"price"`
+	Trainer           Trainer  `json:"trainer"`
+	EnrollerdStudents []string `json:"enrolledStudents"`
 }
