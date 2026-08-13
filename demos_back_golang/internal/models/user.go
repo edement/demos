@@ -29,3 +29,9 @@ type LoginRequest struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
 }
+
+type UserClaims struct {
+	UserID   int64
+	Username string
+	Email    string
+}

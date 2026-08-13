@@ -3,20 +3,17 @@ package middleware
 import (
 	"context"
 	"demos_back_golang/internal/lib/jwt"
+	"demos_back_golang/internal/models"
 	"net/http"
 	"strings"
 )
 
-const UserContextKey string = "user"
+type claimsKey string
+
+const UserClaimsKey claimsKey = "user"
 
 type AuthMiddleware struct {
 	jwtService *jwt.JwtService
-}
-
-type UserContext struct {
-	UserID   int64
-	Username string
-	Email    string
 }
 
 func NewAuthMiddleware(jwtService *jwt.JwtService) func(next http.Handler) http.Handler {
@@ -42,13 +39,13 @@ func NewAuthMiddleware(jwtService *jwt.JwtService) func(next http.Handler) http.
 				return
 			}
 
-			userCtx := UserContext{
+			userCtx := models.UserClaims{
 				UserID:   claims.UserID,
 				Username: claims.Username,
 				Email:    claims.Email,
 			}
 
-			ctx := context.WithValue(r.Context(), UserContextKey, userCtx)
+			ctx := context.WithValue(r.Context(), UserClaimsKey, userCtx)
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}

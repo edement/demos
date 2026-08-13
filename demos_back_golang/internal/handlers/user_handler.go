@@ -4,6 +4,7 @@ import (
 	"context"
 	"demos_back_golang/internal/lib/jwt"
 	"demos_back_golang/internal/lib/slogpretty/sl"
+	"demos_back_golang/internal/middleware"
 	"demos_back_golang/internal/models"
 	"demos_back_golang/internal/storage"
 	"encoding/json"
@@ -225,27 +226,12 @@ func (h *UserHandler) Refresh(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *UserHandler) Logout(w http.ResponseWriter, r *http.Request) {
-	authHeader := r.Header.Get("Authorization")
-	if authHeader == "" {
-		http.Error(w, "Missing Authorization header", http.StatusUnauthorized)
-		return
-	}
-
-	const prefix = "Bearer "
-	if len(authHeader) < len(prefix) || authHeader[:len(prefix)] != prefix {
-		http.Error(w, "Invalid Authorization header format", http.StatusUnauthorized)
-		return
-	}
-	tokenString := authHeader[len(prefix):]
-
-	claims, err := h.jwtService.ValidateAccessToken(tokenString)
-	if err != nil {
-		http.Error(w, "Invalid token", http.StatusUnauthorized)
-		return
-	}
-
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
+
+	// Работа с контекстом запроса после прохода auth middleware
+	val := r.Context().Value(middleware.UserClaimsKey)
+	claims := h.jwtService.GetClaimsFromJWT(val)
 
 	if err := h.refreshTokenStore.RevokeAllUserTokens(ctx, claims.UserID); err != nil {
 		h.logger.Error("Failed to revoke tokens", sl.Err(err))
@@ -254,6 +240,35 @@ func (h *UserHandler) Logout(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusNoContent)
+}
+
+func (h *UserHandler) Me(w http.ResponseWriter, r *http.Request) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	// Работа с контекстом запроса после прохода auth middleware
+	val := r.Context().Value(middleware.UserClaimsKey)
+	claims := h.jwtService.GetClaimsFromJWT(val)
+
+	user, err := h.storage.GetUserByID(ctx, claims.UserID)
+	if err != nil {
+		h.logger.Error("Failed to get user", sl.Err(err))
+		http.Error(w, "User not found", http.StatusInternalServerError)
+		return
+	}
+
+	response := models.UserResponse{
+		ID:        user.ID,
+		Username:  user.Username,
+		Email:     user.Email,
+		IsTrainer: user.IsTrainer,
+	}
+
+	w.Header().Set("Content-type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		h.logger.Error("Error while encoding response", sl.Err(err))
+	}
 }
 
 func (h *UserHandler) generateTokens(
@@ -280,49 +295,4 @@ func (h *UserHandler) generateTokens(
 	}
 
 	return accessToken, refreshToken, nil
-}
-
-func (h *UserHandler) Me(w http.ResponseWriter, r *http.Request) {
-	authHeader := r.Header.Get("Authorization")
-	if authHeader == "" {
-		http.Error(w, "Missing Authorization header", http.StatusUnauthorized)
-		return
-	}
-
-	const prefix = "Bearer "
-	if len(authHeader) < len(prefix) || authHeader[:len(prefix)] != prefix {
-		http.Error(w, "Invalid Authorization header format", http.StatusUnauthorized)
-		return
-	}
-	tokenString := authHeader[len(prefix):]
-
-	claims, err := h.jwtService.ValidateAccessToken(tokenString)
-	if err != nil {
-		h.logger.Error("Invalid token", sl.Err(err))
-		http.Error(w, "Invalid or expired token", http.StatusUnauthorized)
-		return
-	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
-	user, err := h.storage.GetUserByID(ctx, claims.UserID)
-	if err != nil {
-		h.logger.Error("Failed to get user", sl.Err(err))
-		http.Error(w, "User not found", http.StatusInternalServerError)
-		return
-	}
-
-	response := models.UserResponse{
-		ID:        user.ID,
-		Username:  user.Username,
-		Email:     user.Email,
-		IsTrainer: user.IsTrainer,
-	}
-
-	w.Header().Set("Content-type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	if err := json.NewEncoder(w).Encode(response); err != nil {
-		h.logger.Error("Error while encoding response", sl.Err(err))
-	}
 }

@@ -1,6 +1,7 @@
 package jwt
 
 import (
+	"demos_back_golang/internal/models"
 	"errors"
 	"time"
 
@@ -102,4 +103,15 @@ func (js *JwtService) ValidateRefreshToken(tokenString string) (*RefreshTokenCla
 	}
 
 	return nil, errors.New("invalid token")
+}
+
+func (js *JwtService) GetClaimsFromJWT(val any) models.UserClaims {
+	if val == nil {
+		//http.Error(w, "Unauthorized", http.StatusUnauthorized)
+	}
+	claims, ok := val.(models.UserClaims)
+	if !ok {
+		//http.Error(w, "invalid context", http.StatusInternalServerError)
+	}
+	return claims
 }
