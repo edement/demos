@@ -5,7 +5,7 @@ import (
 	"demos_back_golang/internal/lib/slogpretty/sl"
 	"demos_back_golang/internal/middleware"
 	"demos_back_golang/internal/models"
-	"demos_back_golang/internal/storage"
+	"demos_back_golang/internal/services"
 	"encoding/json"
 	"log/slog"
 	"net/http"
@@ -16,13 +16,13 @@ import (
 )
 
 type ClassHandler struct {
-	storage storage.ClassRepository
+	service services.ClassService
 	logger  *slog.Logger
 }
 
-func NewClassHandler(storage storage.ClassRepository, logger *slog.Logger) *ClassHandler {
+func NewClassHandler(service services.ClassService, logger *slog.Logger) *ClassHandler {
 	return &ClassHandler{
-		storage: storage,
+		service: service,
 		logger:  logger,
 	}
 }
